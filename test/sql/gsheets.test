@@ -1,0 +1,23 @@
+# name: test/sql/gsheets.test
+# description: test gsheets extension
+# group: [gsheets]
+
+# Before we load the extension, this will fail
+statement error
+SELECT gsheets('Sam');
+----
+Catalog Error: Scalar Function with name gsheets does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require gsheets
+
+# Confirm the extension works
+query I
+SELECT gsheets('Sam');
+----
+Gsheets Sam 🐥
+
+query I
+SELECT gsheets_openssl_version('Michael') ILIKE 'Gsheets Michael, my linked OpenSSL version is OpenSSL%';
+----
+true
