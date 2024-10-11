@@ -11,6 +11,12 @@
 #include <openssl/err.h>
 #include <openssl/bio.h>
 #include <sstream>
+#include "duckdb/function/table_function.hpp"
+#include "duckdb/common/types/data_chunk.hpp"
+#include "duckdb/common/types/vector.hpp"
+#include <string>
+#include <unordered_map>
+#include <algorithm>
 
 // OpenSSL linked through vcpkg
 #include <openssl/opensslv.h>
@@ -93,17 +99,124 @@ static std::string fetch_sheet_data(const std::string& sheet_id, const std::stri
     return perform_https_request(host, path, token);
 }
 
-static void ReadSheetFunction(DataChunk &args, ExpressionState &state, Vector &result) {
-    auto &sheet_id_vector = args.data[0];
-    auto &token_vector = args.data[1];
+struct ReadSheetBindData : public TableFunctionData {
+    string sheet_id;
+    string token;
+    bool finished;
+    idx_t row_index;
+    string response;  // Add this line
 
-    UnaryExecutor::Execute<string_t, string_t>(
-        sheet_id_vector, result, args.size(),
-        [&](string_t sheet_id) {
-            auto token = token_vector.GetValue(0).ToString();
-            std::string sheet_data = fetch_sheet_data(sheet_id.GetString(), token);
-            return StringVector::AddString(result, sheet_data);
-        });
+    ReadSheetBindData(string sheet_id, string token) 
+        : sheet_id(sheet_id), token(token), finished(false), row_index(0) {
+        // Fetch the sheet data when the bind data is created
+        response = fetch_sheet_data(sheet_id, token);
+    }
+};
+
+#include <string>
+#include <vector>
+#include <sstream>
+#include <algorithm>
+
+struct SheetData {
+    std::string range;
+    std::string majorDimension;
+    std::vector<std::vector<std::string>> values;
+};
+
+SheetData parseJson(const std::string& json) {
+    SheetData result;
+    std::istringstream iss(json);
+    std::string line;
+
+    auto trim = [](std::string& s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch) && ch != '"';
+        }));
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+            return !std::isspace(ch) && ch != '"';
+        }).base(), s.end());
+    };
+
+    while (std::getline(iss, line)) {
+        trim(line);
+        if (line.find("range") != std::string::npos) {
+            result.range = line.substr(line.find(":") + 1);
+            trim(result.range);
+        } else if (line.find("majorDimension") != std::string::npos) {
+            result.majorDimension = line.substr(line.find(":") + 1);
+            trim(result.majorDimension);
+        } else if (line == "[") {
+            std::vector<std::string> row;
+            while (std::getline(iss, line) && line != "]") {
+                trim(line);
+                if (line == "[") {
+                    row.clear();
+                } else if (line == "]") {
+                    if (!row.empty()) {
+                        result.values.push_back(row);
+                    }
+                } else {
+                    row.push_back(line);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+// Update the ReadSheetFunction to use the new parseJson function
+static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
+    auto &bind_data = const_cast<ReadSheetBindData&>(data_p.bind_data->Cast<ReadSheetBindData>());
+
+    if (bind_data.finished) {
+        return;
+    }
+
+    // Parse the JSON response
+    SheetData sheet_data = parseJson(bind_data.response);
+
+    idx_t row_count = 0;
+    idx_t column_count = output.ColumnCount();
+
+    for (idx_t i = bind_data.row_index; i < sheet_data.values.size() && row_count < STANDARD_VECTOR_SIZE; i++) {
+        const auto& row = sheet_data.values[i];
+        for (idx_t col = 0; col < column_count; col++) {
+            if (col < row.size()) {
+                output.SetValue(col, row_count, Value(row[col]));
+            } else {
+                output.SetValue(col, row_count, Value(nullptr));
+            }
+        }
+        row_count++;
+    }
+
+    bind_data.row_index += row_count;
+    bind_data.finished = (bind_data.row_index >= sheet_data.values.size());
+
+    output.SetCardinality(row_count);
+}
+
+// Update the ReadSheetBind function
+static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBindInput &input,
+                                              vector<LogicalType> &return_types, vector<string> &names) {
+    auto sheet_id = input.inputs[0].GetValue<string>();
+    auto token = input.inputs[1].GetValue<string>();
+
+    auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token);
+
+    // Parse headers from the response
+    SheetData sheet_data = parseJson(bind_data->response);
+
+    if (!sheet_data.values.empty()) {
+        for (const auto& header : sheet_data.values[0]) {
+            names.push_back(header);
+            return_types.push_back(LogicalType::VARCHAR);
+        }
+    }
+
+    return bind_data;
 }
 
 static void LoadInternal(DatabaseInstance &instance) {
@@ -121,8 +234,8 @@ static void LoadInternal(DatabaseInstance &instance) {
                                                 LogicalType::VARCHAR, GsheetsOpenSSLVersionScalarFun);
     ExtensionUtil::RegisterFunction(instance, gsheets_openssl_version_scalar_function);
 
-    // Register read_sheet function
-    auto read_sheet_function = ScalarFunction("read_sheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, LogicalType::VARCHAR, ReadSheetFunction);
+    // Register read_sheet table function
+    TableFunction read_sheet_function("read_sheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
     ExtensionUtil::RegisterFunction(instance, read_sheet_function);
 }
 
