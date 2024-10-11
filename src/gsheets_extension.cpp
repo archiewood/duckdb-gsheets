@@ -88,11 +88,11 @@ struct ReadSheetBindData : public TableFunctionData {
     string token;
     bool finished;
     idx_t row_index;
-    string response;  // Add this line
+    string response;
+    bool header;  // Add this line
 
-    ReadSheetBindData(string sheet_id, string token) 
-        : sheet_id(sheet_id), token(token), finished(false), row_index(0) {
-        // Fetch the sheet data when the bind data is created
+    ReadSheetBindData(string sheet_id, string token, bool header) 
+        : sheet_id(sheet_id), token(token), finished(false), row_index(0), header(header) {
         response = fetch_sheet_data(sheet_id, token);
     }
 };
@@ -129,13 +129,14 @@ SheetData parseJson(const std::string& json) {
 
     while (std::getline(iss, line)) {
         trim(line);
-
+        // Skip the {}
+        if (line == "{" || line == "}") {
+            continue;
+        }
         if (line.find("range") != std::string::npos) {
-            result.range = line.substr(line.find(":") + 1);
-            trim(result.range);
+            continue;
         } else if (line.find("majorDimension") != std::string::npos) {
-            result.majorDimension = line.substr(line.find(":") + 1);
-            trim(result.majorDimension);
+            continue;
         } else if (line == "[") {
             std::vector<std::string> row;
             while (std::getline(iss, line) && line != "]") {
@@ -151,12 +152,12 @@ SheetData parseJson(const std::string& json) {
                 }
             }
         }
+        
     }
-
+    
     return result;
 }
 
-// Update the ReadSheetFunction to use the new parseJson function
 static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
     auto &bind_data = const_cast<ReadSheetBindData&>(data_p.bind_data->Cast<ReadSheetBindData>());
 
@@ -164,13 +165,15 @@ static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p
         return;
     }
 
-    // Parse the JSON response
     SheetData sheet_data = parseJson(bind_data.response);
 
     idx_t row_count = 0;
     idx_t column_count = output.ColumnCount();
 
-    for (idx_t i = bind_data.row_index; i < sheet_data.values.size() && row_count < STANDARD_VECTOR_SIZE; i++) {
+    // Adjust starting index based on whether we're using the header
+    idx_t start_index = (bind_data.header && bind_data.row_index == 0) ? 1 : bind_data.row_index;
+
+    for (idx_t i = start_index; i < sheet_data.values.size() && row_count < STANDARD_VECTOR_SIZE; i++) {
         const auto& row = sheet_data.values[i];
         for (idx_t col = 0; col < column_count; col++) {
             if (col < row.size()) {
@@ -193,16 +196,24 @@ static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunct
                                               vector<LogicalType> &return_types, vector<string> &names) {
     auto sheet_id = input.inputs[0].GetValue<string>();
     auto token = input.inputs[1].GetValue<string>();
+    bool header = input.inputs.size() > 2 ? input.inputs[2].GetValue<bool>() : true;  // Default to true if not provided
 
-    auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token);
+    auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header);
 
-    // Parse headers from the response
     SheetData sheet_data = parseJson(bind_data->response);
 
     if (!sheet_data.values.empty()) {
-        for (const auto& header : sheet_data.values[0]) {
-            names.push_back(header);
-            return_types.push_back(LogicalType::VARCHAR);
+        if (header) {
+            for (const auto& column_name : sheet_data.values[0]) {
+                names.push_back(column_name);
+                return_types.push_back(LogicalType::VARCHAR);
+            }
+        } else {
+            // If not using header, generate column names
+            for (size_t i = 0; i < sheet_data.values[0].size(); i++) {
+                names.push_back("column" + std::to_string(i + 1));
+                return_types.push_back(LogicalType::VARCHAR);
+            }
         }
     }
 
@@ -217,7 +228,8 @@ static void LoadInternal(DatabaseInstance &instance) {
 
 
     // Register read_sheet table function
-    TableFunction read_sheet_function("read_sheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
+    TableFunction read_sheet_function("read_sheet", {LogicalType::VARCHAR, LogicalType::VARCHAR, LogicalType::BOOLEAN}, ReadSheetFunction, ReadSheetBind);
+    read_sheet_function.named_parameters["header"] = LogicalType::BOOLEAN;  // Add this line to make it a named parameter
     ExtensionUtil::RegisterFunction(instance, read_sheet_function);
 }
 
