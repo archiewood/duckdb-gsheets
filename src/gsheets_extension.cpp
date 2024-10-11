@@ -7,9 +7,7 @@
 #include "duckdb/function/scalar_function.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include <duckdb/parser/parsed_data/create_scalar_function_info.hpp>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
+
 #include <sstream>
 #include "duckdb/function/table_function.hpp"
 #include "duckdb/common/types/data_chunk.hpp"
@@ -17,9 +15,14 @@
 #include <string>
 #include <unordered_map>
 #include <algorithm>
+#include <iostream>
+using namespace std;
 
 // OpenSSL linked through vcpkg
 #include <openssl/opensslv.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
 
 namespace duckdb {
 
@@ -111,6 +114,11 @@ SheetData parseJson(const std::string& json) {
     std::string line;
 
     auto trim = [](std::string& s) {
+        // Remove trailing whitespace and any commas
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+            return !std::isspace(ch) && ch != ',';
+        }).base(), s.end());
+        // Remove leading whitespace and quotes
         s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
             return !std::isspace(ch) && ch != '"';
         }));
@@ -121,6 +129,7 @@ SheetData parseJson(const std::string& json) {
 
     while (std::getline(iss, line)) {
         trim(line);
+
         if (line.find("range") != std::string::npos) {
             result.range = line.substr(line.find(":") + 1);
             trim(result.range);
