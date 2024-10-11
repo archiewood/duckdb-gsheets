@@ -13,6 +13,7 @@ set(LOADABLE_EXTENSION_NAME ${TARGET_NAME}_loadable_extension)
 
 project(${TARGET_NAME})
 include_directories(src/include)
+include_directories(third_party)
 
 set(EXTENSION_SOURCES src/gsheets_extension.cpp)
 

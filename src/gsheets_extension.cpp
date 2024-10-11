@@ -24,6 +24,10 @@ using namespace std;
 #include <openssl/err.h>
 #include <openssl/bio.h>
 
+#include <json.hpp>
+
+using json = nlohmann::json;
+
 namespace duckdb {
 
 
@@ -108,53 +112,39 @@ struct SheetData {
     std::vector<std::vector<std::string>> values;
 };
 
-SheetData parseJson(const std::string& json) {
+SheetData parseJson(const std::string& json_str) {
     SheetData result;
-    std::istringstream iss(json);
-    std::string line;
-
-    auto trim = [](std::string& s) {
-        // Remove trailing whitespace and any commas
-        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-            return !std::isspace(ch) && ch != ',';
-        }).base(), s.end());
-        // Remove leading whitespace and quotes
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-            return !std::isspace(ch) && ch != '"';
-        }));
-        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-            return !std::isspace(ch) && ch != '"';
-        }).base(), s.end());
-    };
-
-    while (std::getline(iss, line)) {
-        trim(line);
-        // Skip the {}
-        if (line == "{" || line == "}") {
-            continue;
+    try {
+        // Find the start of the JSON object
+        size_t start = json_str.find('{');
+        if (start == std::string::npos) {
+            throw std::runtime_error("No JSON object found in the response");
         }
-        if (line.find("range") != std::string::npos) {
-            continue;
-        } else if (line.find("majorDimension") != std::string::npos) {
-            continue;
-        } else if (line == "[") {
-            std::vector<std::string> row;
-            while (std::getline(iss, line) && line != "]") {
-                trim(line);
-                if (line == "[") {
-                    row.clear();
-                } else if (line == "]") {
-                    if (!row.empty()) {
-                        result.values.push_back(row);
-                    }
-                } else {
-                    row.push_back(line);
-                }
-            }
+
+        // Find the end of the JSON object
+        size_t end = json_str.rfind('}');
+        if (end == std::string::npos) {
+            throw std::runtime_error("No closing brace found in the JSON response");
         }
-        
+
+        // Extract the JSON object
+        std::string clean_json = json_str.substr(start, end - start + 1);
+
+        json j = json::parse(clean_json);
+
+        if (j.contains("range") && j.contains("majorDimension") && j.contains("values")) {
+            result.range = j["range"].get<std::string>();
+            result.majorDimension = j["majorDimension"].get<std::string>();
+            result.values = j["values"].get<std::vector<std::vector<std::string>>>();
+        } else {
+            throw std::runtime_error("JSON does not contain expected fields");
+        }
+    } catch (const json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        std::cerr << "Raw JSON string: " << json_str << std::endl;
+        throw;
     }
-    
+
     return result;
 }
 
