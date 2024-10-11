@@ -161,7 +161,7 @@ static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p
     idx_t column_count = output.ColumnCount();
 
     // Adjust starting index based on whether we're using the header
-    idx_t start_index = (bind_data.header && bind_data.row_index == 0) ? 1 : bind_data.row_index;
+    idx_t start_index = bind_data.header ? bind_data.row_index + 1 : bind_data.row_index;
 
     for (idx_t i = start_index; i < sheet_data.values.size() && row_count < STANDARD_VECTOR_SIZE; i++) {
         const auto& row = sheet_data.values[i];
@@ -176,7 +176,7 @@ static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p
     }
 
     bind_data.row_index += row_count;
-    bind_data.finished = (bind_data.row_index >= sheet_data.values.size());
+    bind_data.finished = (bind_data.row_index >= (sheet_data.values.size() - (bind_data.header ? 1 : 0)));
 
     output.SetCardinality(row_count);
 }
