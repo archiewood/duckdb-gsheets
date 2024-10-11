@@ -23,25 +23,6 @@
 
 namespace duckdb {
 
-inline void GsheetsScalarFun(DataChunk &args, ExpressionState &state, Vector &result) {
-    auto &name_vector = args.data[0];
-    UnaryExecutor::Execute<string_t, string_t>(
-	    name_vector, result, args.size(),
-	    [&](string_t name) {
-			return StringVector::AddString(result, "Gsheets "+name.GetString()+" 🐥");;
-        });
-}
-
-inline void GsheetsOpenSSLVersionScalarFun(DataChunk &args, ExpressionState &state, Vector &result) {
-    auto &name_vector = args.data[0];
-    UnaryExecutor::Execute<string_t, string_t>(
-	    name_vector, result, args.size(),
-	    [&](string_t name) {
-			return StringVector::AddString(result, "Gsheets " + name.GetString() +
-                                                     ", my linked OpenSSL version is " +
-                                                     OPENSSL_VERSION_TEXT );;
-        });
-}
 
 static std::string perform_https_request(const std::string& host, const std::string& path, const std::string& token) {
     std::string response;
@@ -225,14 +206,6 @@ static void LoadInternal(DatabaseInstance &instance) {
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
 
-    // Register a scalar function
-    auto gsheets_scalar_function = ScalarFunction("gsheets", {LogicalType::VARCHAR}, LogicalType::VARCHAR, GsheetsScalarFun);
-    ExtensionUtil::RegisterFunction(instance, gsheets_scalar_function);
-
-    // Register another scalar function
-    auto gsheets_openssl_version_scalar_function = ScalarFunction("gsheets_openssl_version", {LogicalType::VARCHAR},
-                                                LogicalType::VARCHAR, GsheetsOpenSSLVersionScalarFun);
-    ExtensionUtil::RegisterFunction(instance, gsheets_openssl_version_scalar_function);
 
     // Register read_sheet table function
     TableFunction read_sheet_function("read_sheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
