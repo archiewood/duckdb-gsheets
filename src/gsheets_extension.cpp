@@ -28,8 +28,20 @@ using namespace std;
 
 using json = nlohmann::json;
 
+#include <fstream>
+
 namespace duckdb {
 
+
+static std::string read_token_from_file(const std::string& file_path) {
+    std::ifstream file(file_path);
+    if (!file.is_open()) {
+        throw duckdb::IOException("Failed to open token file: " + file_path);
+    }
+    std::string token;
+    std::getline(file, token);
+    return token;
+}
 
 static std::string perform_https_request(const std::string& host, const std::string& path, const std::string& token) {
     std::string response;
@@ -93,7 +105,7 @@ struct ReadSheetBindData : public TableFunctionData {
     bool finished;
     idx_t row_index;
     string response;
-    bool header;  // Add this line
+    bool header; 
 
     ReadSheetBindData(string sheet_id, string token, bool header) 
         : sheet_id(sheet_id), token(token), finished(false), row_index(0), header(header) {
@@ -185,8 +197,11 @@ static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p
 static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBindInput &input,
                                               vector<LogicalType> &return_types, vector<string> &names) {
     auto sheet_id = input.inputs[0].GetValue<string>();
-    auto token = input.inputs[1].GetValue<string>();
-    bool header = input.inputs.size() > 2 ? input.inputs[2].GetValue<bool>() : true;  // Default to true if not provided
+    auto token_file_path = input.inputs[1].GetValue<string>();
+    bool header = input.inputs.size() > 2 ? input.inputs[2].GetValue<bool>() : true;
+
+    // Read the token from the file
+    std::string token = read_token_from_file(token_file_path);
 
     auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header);
 
@@ -216,11 +231,10 @@ static void LoadInternal(DatabaseInstance &instance) {
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
 
-
-    // Register read_sheet table function
-    TableFunction read_sheet_function("read_sheet", {LogicalType::VARCHAR, LogicalType::VARCHAR, LogicalType::BOOLEAN}, ReadSheetFunction, ReadSheetBind);
-    read_sheet_function.named_parameters["header"] = LogicalType::BOOLEAN;  // Add this line to make it a named parameter
-    ExtensionUtil::RegisterFunction(instance, read_sheet_function);
+    // Register read_gsheet table function
+    TableFunction read_gsheet_function("read_gsheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
+    read_gsheet_function.named_parameters["header"] = LogicalType::BOOLEAN;
+    ExtensionUtil::RegisterFunction(instance, read_gsheet_function);
 }
 
 void GsheetsExtension::Load(DuckDB &db) {
