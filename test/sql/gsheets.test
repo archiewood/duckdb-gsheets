@@ -4,20 +4,20 @@
 
 # Before we load the extension, this will fail
 statement error
-SELECT gsheets('Sam');
+FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', 'token.txt', header=true);
 ----
-Catalog Error: Scalar Function with name gsheets does not exist!
+Catalog Error: Table Function with name read_gsheet does not exist!
 
 # Require statement will ensure this test is run with this extension loaded
 require gsheets
 
 # Confirm the extension works
-query I
-SELECT gsheets('Sam');
+query III
+FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', 'token.txt', header=true);
 ----
-Gsheets Sam 🐥
-
-query I
-SELECT gsheets_openssl_version('Michael') ILIKE 'Gsheets Michael, my linked OpenSSL version is OpenSSL%';
-----
-true
+Alice	30	Toronto
+Bob	25	New York
+Charlie	45	Chicago
+Drake	NULL	NULL
+NULL	NULL	NULL
+Archie	99	NULL
