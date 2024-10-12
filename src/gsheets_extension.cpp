@@ -1,6 +1,7 @@
 #define DUCKDB_EXTENSION_MAIN
 
 #include "gsheets_extension.hpp"
+#include "gsheets_auth.hpp"
 #include "duckdb.hpp"
 #include "duckdb/common/exception.hpp"
 #include "duckdb/common/string_util.hpp"
@@ -30,18 +31,11 @@ using json = nlohmann::json;
 
 #include <fstream>
 
+
 namespace duckdb {
 
 
-static std::string read_token_from_file(const std::string& file_path) {
-    std::ifstream file(file_path);
-    if (!file.is_open()) {
-        throw duckdb::IOException("Failed to open token file: " + file_path);
-    }
-    std::string token;
-    std::getline(file, token);
-    return token;
-}
+
 
 static std::string perform_https_request(const std::string& host, const std::string& path, const std::string& token) {
     std::string response;
@@ -200,7 +194,7 @@ static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunct
     auto token_file_path = input.inputs[1].GetValue<string>();
     bool header = input.inputs.size() > 2 ? input.inputs[2].GetValue<bool>() : true;
 
-    // Read the token from the file
+    // Use the read_token_from_file function from gsheets_auth.hpp
     std::string token = read_token_from_file(token_file_path);
 
     auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header);
