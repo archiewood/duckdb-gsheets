@@ -252,6 +252,10 @@ static void LoadInternal(DatabaseInstance &instance) {
     TableFunction read_gsheet_function("read_gsheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
     read_gsheet_function.named_parameters["header"] = LogicalType::BOOLEAN;
     ExtensionUtil::RegisterFunction(instance, read_gsheet_function);
+
+    // Register Secret functions
+	CreateGsheetSecretFunctions::Register(instance);
+
 }
 
 void GsheetsExtension::Load(DuckDB &db) {
