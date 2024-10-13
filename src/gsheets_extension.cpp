@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
+#include <regex>
 using namespace std;
 
 // OpenSSL linked through vcpkg
@@ -187,12 +188,34 @@ static void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p
     output.SetCardinality(row_count);
 }
 
+static std::string extract_sheet_id(const std::string& input) {
+    // Check if the input is already a sheet ID (no slashes)
+    if (input.find('/') == std::string::npos) {
+        return input;
+    }
+
+    // Regular expression to match the sheet ID in a Google Sheets URL
+    if(input.find("docs.google.com/spreadsheets/d/") != std::string::npos) {
+        std::regex sheet_id_regex("/d/([a-zA-Z0-9-_]+)");
+        std::smatch match;
+
+        if (std::regex_search(input, match, sheet_id_regex) && match.size() > 1) {
+            return match.str(1);
+        }
+    }
+
+    throw duckdb::InvalidInputException("Invalid Google Sheets URL or ID");
+}
+
 // Update the ReadSheetBind function
 static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBindInput &input,
                                               vector<LogicalType> &return_types, vector<string> &names) {
-    auto sheet_id = input.inputs[0].GetValue<string>();
+    auto sheet_input = input.inputs[0].GetValue<string>();
     auto token_file_path = input.inputs[1].GetValue<string>();
     bool header = input.inputs.size() > 2 ? input.inputs[2].GetValue<bool>() : true;
+
+    // Extract the sheet ID from the input (URL or ID)
+    std::string sheet_id = extract_sheet_id(sheet_input);
 
     // Use the read_token_from_file function from gsheets_auth.hpp
     std::string token = read_token_from_file(token_file_path);
