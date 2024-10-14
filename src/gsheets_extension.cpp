@@ -91,9 +91,9 @@ static std::string perform_https_request(const std::string& host, const std::str
     return response;
 }
 
-static std::string fetch_sheet_data(const std::string& sheet_id, const std::string& token) {
+static std::string fetch_sheet_data(const std::string& sheet_id, const std::string& token, const std::string& sheet_name) {
     std::string host = "sheets.googleapis.com";
-    std::string path = "/v4/spreadsheets/" + sheet_id + "/values/Sheet1";  // Assumes "Sheet1", adjust as needed
+    std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name;
     
     return perform_https_request(host, path, token);
 }
@@ -104,11 +104,12 @@ struct ReadSheetBindData : public TableFunctionData {
     bool finished;
     idx_t row_index;
     string response;
-    bool header; 
+    bool header;
+    string sheet_name;  // Add this line
 
-    ReadSheetBindData(string sheet_id, string token, bool header) 
-        : sheet_id(sheet_id), token(token), finished(false), row_index(0), header(header) {
-        response = fetch_sheet_data(sheet_id, token);
+    ReadSheetBindData(string sheet_id, string token, bool header, string sheet_name) 
+        : sheet_id(sheet_id), token(token), finished(false), row_index(0), header(header), sheet_name(sheet_name) {
+        response = fetch_sheet_data(sheet_id, token, sheet_name);  // Update this line
     }
 };
 
@@ -148,10 +149,9 @@ SheetData parseJson(const std::string& json_str) {
             result.majorDimension = j["majorDimension"].get<std::string>();
             result.values = j["values"].get<std::vector<std::vector<std::string>>>();
         } else if (j.contains("error")) {
-            string error = j["error"].get<std::string>();
             string message = j["error"]["message"].get<std::string>();
-            string code = j["error"]["code"].get<std::string>();
-            throw std::runtime_error("Google Sheets API error: " + code + " - " + message);
+            int code = j["error"]["code"].get<int>();
+            throw std::runtime_error("Google Sheets API error: " + std::to_string(code) + " - " + message);
         } else {
             std::cerr << "JSON does not contain expected fields" << std::endl;
             std::cerr << "Raw JSON string: " << json_str << std::endl;
@@ -222,7 +222,23 @@ static std::string extract_sheet_id(const std::string& input) {
 static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBindInput &input,
                                               vector<LogicalType> &return_types, vector<string> &names) {
     auto sheet_input = input.inputs[0].GetValue<string>();
-    bool header = input.inputs.size() > 1 ? input.inputs[1].GetValue<bool>() : true;
+    
+    // Default values
+    bool header = true;
+    string sheet = "Sheet1";
+
+    // Parse named parameters
+    for (auto &kv : input.named_parameters) {
+        if (kv.first == "header") {
+            try {
+                header = kv.second.GetValue<bool>();
+            } catch (const std::exception& e) {
+                throw InvalidInputException("Invalid value for 'header' parameter. Expected a boolean value.");
+            }
+        } else if (kv.first == "sheet") {
+            sheet = kv.second.GetValue<string>();
+        }
+    }
 
     // Extract the sheet ID from the input (URL or ID)
     std::string sheet_id = extract_sheet_id(sheet_input);
@@ -253,7 +269,7 @@ static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunct
 
     std::string token = token_value.ToString();
 
-    auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header);
+    auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header, sheet);
 
     SheetData sheet_data = parseJson(bind_data->response);
 
@@ -284,6 +300,7 @@ static void LoadInternal(DatabaseInstance &instance) {
     // Register read_gsheet table function
     TableFunction read_gsheet_function("read_gsheet", {LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
     read_gsheet_function.named_parameters["header"] = LogicalType::BOOLEAN;
+    read_gsheet_function.named_parameters["sheet"] = LogicalType::VARCHAR;
     ExtensionUtil::RegisterFunction(instance, read_gsheet_function);
 
     // Register Secret functions
