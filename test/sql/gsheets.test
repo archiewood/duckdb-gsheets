@@ -37,6 +37,21 @@ Drake	NULL	NULL
 NULL	NULL	NULL
 Archie	99	NULL
 
+# Test the sheet parameter
+query IIIII
+FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', sheet='Sheet2') limit 10;
+----
+AGA	57.5	27	Agana GU	Pacific
+ALB	49	21.5	Albany NY	Northeast
+ABQ	30	15.5	Albuquerque NM	Southwest
+ANC	26.5	26	Anchorage AK	Pacific
+ATL	53	14.5	Atlanta GA	Southeast
+BAL	19	11	Baltimore MD	Mid-Atlantic
+BOI	19.5	15	Boise ID	Northwest
+BOS	35.5	23	Boston MA	Northeast
+BNY	56	24.5	Brooklyn NY	Northeast
+BUF	32.5	23	Buffalo NY	Northeast
+
 # Drop the secret
 statement ok
 drop secret test_secret;
