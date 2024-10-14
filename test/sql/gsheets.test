@@ -13,44 +13,56 @@ require gsheets
 
 # Create a secret NB must substitute a token, do not commit!
 statement ok
-create secret test_secret (type gsheet,token 'xxx');
+create secret test_secret (type gsheet,token 'ya29.c.c0ASRK0GZFj9CveixCNRFyqgjHNeBAkgwUtLvl17DINAEoILxBTLtOn9TgXgiy-THL2V5Sb575YHE7-Y64g7LsmF2UNk2q9Blhzon3EFHWAWEP5Z54EJ6fCbhuCNIP2ZnWcHhvgXKv6uXgBhjgszb5uPzjusx5L5vg8D0FyYx78YThLx4N17nixNPS_1Etkmq-930-6Q-NQyCOjmlB9eh_GsgGKR2ghPSAFLf7XgFd6hFk3o719nUVtZ76mw1b1S7x3ksWNJoJW0fq_sVjxizEjzPCbcLF1qFOmWHtR2M4lb1_4NphSjLhsPMfyxqRpsqfdJjipJC394bqeKaYcEixYAlJgMuuJbpZf51VkwvqLTmrO7l45iCQjNNGx3p8T389DS2icWmpex8BuU9R1p8wrln0OFWn-6kr0d8mvYd0M2ee2tao7Ux5u8W0Sbxsuv7omMylrViB2iQ8y_1rJXx_SM9115SJbiiabmfW05Q81ph1uWZ9ea_IcQbptBequrO1_8xVMoc5RdV1-QtaeOVwhoxusxXv9FaeBJ1-5Z2ov_nyjtgRosl5xd1t9Fxzznw8klV-V_VQiYQctb0e9U5VnI6RMS77R0eZgIjaxh8rsd_vcfvUkQp4jrvhb5um3Bgxlge0l2jsBfw9RJI0-Qy_ktfYd5-2-O9Mjh3adFwFe4_6QrMik0fwp0qw2kq7MXWBnkWIgF8F0ZFbn9U4W9xZrq1iVy8mrkRaehz_9w_Q0x0getlg2dlhJU5FR15mj2aY3172M52vUm_2ejceQUQplQFxeIn_3nbJkSl8_q5fVWc59zlFYvU3gatOWabnxFsVt-6O4_W59QUVduy3JUsfv2veW1a84hy14mxv3QqQjirF9OFZkJVdR1sJSwjz3tdueqztrk0qQ5q__lB4M0lkfyYQMgpS1wJQzYIjhl83XIxyQImvV_gVfgpm3n3d2VikVQZeVRSwYRIUJYJ1QuO8_2uvFucrQQ4Zwj9Xq25y_7fV_pY716i4kzw');
 
 # Confirm the extension works
 query III
 FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', header=true);
 ----
-Alice	30	Toronto
-Bob	25	New York
-Charlie	45	Chicago
+Alice	30.0	Toronto
+Bob	25.0	New York
+Charlie	45.0	Chicago
 Drake	NULL	NULL
 NULL	NULL	NULL
-Archie	99	NULL
+Archie	99.0	NULL
 
 # Test the full URL
 query III
 FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit#gid=0', header=true);
 ----
-Alice	30	Toronto
-Bob	25	New York
-Charlie	45	Chicago
+Alice	30.0	Toronto
+Bob	25.0	New York
+Charlie	45.0	Chicago
 Drake	NULL	NULL
 NULL	NULL	NULL
-Archie	99	NULL
+Archie	99.0	NULL
 
 # Test the sheet parameter
 query IIIII
 FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', sheet='Sheet2') limit 10;
 ----
-AGA	57.5	27	Agana GU	Pacific
-ALB	49	21.5	Albany NY	Northeast
-ABQ	30	15.5	Albuquerque NM	Southwest
-ANC	26.5	26	Anchorage AK	Pacific
-ATL	53	14.5	Atlanta GA	Southeast
-BAL	19	11	Baltimore MD	Mid-Atlantic
-BOI	19.5	15	Boise ID	Northwest
-BOS	35.5	23	Boston MA	Northeast
-BNY	56	24.5	Brooklyn NY	Northeast
-BUF	32.5	23	Buffalo NY	Northeast
+AGA	57.5	27.0	Agana GU	Pacific
+ALB	49.0	21.5	Albany NY	Northeast
+ABQ	30.0	15.5	Albuquerque NM	Southwest
+ANC	26.5	26.0	Anchorage AK	Pacific
+ATL	53.0	14.5	Atlanta GA	Southeast
+BAL	19.0	11.0	Baltimore MD	Mid-Atlantic
+BOI	19.5	15.0	Boise ID	Northwest
+BOS	35.5	23.0	Boston MA	Northeast
+BNY	56.0	24.5	Brooklyn NY	Northeast
+BUF	32.5	23.0	Buffalo NY	Northeast
+
+# Test types - should read numbers as doubles
+query I
+select age from read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8') limit 10;
+----
+30.0
+25.0
+45.0
+NULL
+NULL
+99.0
+
 
 # Drop the secret
 statement ok
