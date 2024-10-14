@@ -6,6 +6,31 @@ This repository is based on https://github.com/duckdb/extension-template, check 
 
 This extension, Gsheets, allow you to read and write to Google Sheets.
 
+## Usage 
+
+```sql
+-- Create a secret with your Google API access token
+CREATE SECRET test_secret (type gsheet, token '<your_token>');
+
+-- Read a sheet by sheet id
+SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8');
+
+-- Read a sheet by full URL
+SELECT * FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?usp=sharing');
+
+-- Read a sheet with no header row
+SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', headers=false);
+
+-- Read a sheet other than the first sheet
+SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', sheet='Sheet2');
+```
+
+## Getting a Google API Access Token
+
+1. Create a service account in the Google Cloud Console
+2. Generate a key and download the JSON file
+3. Share the sheet with the client_email in the service account
+4. Generate a token with the gcloud CLI `gcloud auth application-default print-access-token`
 
 ## Building
 ### Managing dependencies
