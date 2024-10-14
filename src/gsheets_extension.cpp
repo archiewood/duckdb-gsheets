@@ -32,6 +32,10 @@ using json = nlohmann::json;
 
 #include <fstream>
 
+// Secrets
+#include "duckdb/main/secret/secret.hpp"
+#include "duckdb/main/secret/secret_manager.hpp"
+
 
 namespace duckdb {
 
@@ -143,8 +147,15 @@ SheetData parseJson(const std::string& json_str) {
             result.range = j["range"].get<std::string>();
             result.majorDimension = j["majorDimension"].get<std::string>();
             result.values = j["values"].get<std::vector<std::vector<std::string>>>();
+        } else if (j.contains("error")) {
+            string error = j["error"].get<std::string>();
+            string message = j["error"]["message"].get<std::string>();
+            string code = j["error"]["code"].get<std::string>();
+            throw std::runtime_error("Google Sheets API error: " + code + " - " + message);
         } else {
-            throw std::runtime_error("JSON does not contain expected fields");
+            std::cerr << "JSON does not contain expected fields" << std::endl;
+            std::cerr << "Raw JSON string: " << json_str << std::endl;
+            throw;
         }
     } catch (const json::exception& e) {
         std::cerr << "JSON parsing error: " << e.what() << std::endl;
@@ -211,14 +222,36 @@ static std::string extract_sheet_id(const std::string& input) {
 static unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBindInput &input,
                                               vector<LogicalType> &return_types, vector<string> &names) {
     auto sheet_input = input.inputs[0].GetValue<string>();
-    auto token_file_path = input.inputs[1].GetValue<string>();
-    bool header = input.inputs.size() > 2 ? input.inputs[2].GetValue<bool>() : true;
+    bool header = input.inputs.size() > 1 ? input.inputs[1].GetValue<bool>() : true;
 
     // Extract the sheet ID from the input (URL or ID)
     std::string sheet_id = extract_sheet_id(sheet_input);
 
-    // Use the read_token_from_file function from gsheets_auth.hpp
-    std::string token = read_token_from_file(token_file_path);
+    // Use the SecretManager to get the token
+    auto &secret_manager = SecretManager::Get(context);
+    auto transaction = CatalogTransaction::GetSystemCatalogTransaction(context);
+    auto secret_match = secret_manager.LookupSecret(transaction, "gsheet", "gsheet");
+    
+    if (!secret_match.HasMatch()) {
+        throw InvalidInputException("No 'gsheet' secret found. Please create a secret with 'CREATE SECRET' first.");
+    }
+
+    auto &secret = secret_match.GetSecret();
+    if (secret.GetType() != "gsheet") {
+        throw InvalidInputException("Invalid secret type. Expected 'gsheet', got '%s'", secret.GetType());
+    }
+
+    const auto *kv_secret = dynamic_cast<const KeyValueSecret*>(&secret);
+    if (!kv_secret) {
+        throw InvalidInputException("Invalid secret format for 'gsheet' secret");
+    }
+
+    Value token_value;
+    if (!kv_secret->TryGetValue("token", token_value)) {
+        throw InvalidInputException("'token' not found in 'gsheet' secret");
+    }
+
+    std::string token = token_value.ToString();
 
     auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header);
 
@@ -249,9 +282,13 @@ static void LoadInternal(DatabaseInstance &instance) {
     OpenSSL_add_all_algorithms();
 
     // Register read_gsheet table function
-    TableFunction read_gsheet_function("read_gsheet", {LogicalType::VARCHAR, LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
+    TableFunction read_gsheet_function("read_gsheet", {LogicalType::VARCHAR}, ReadSheetFunction, ReadSheetBind);
     read_gsheet_function.named_parameters["header"] = LogicalType::BOOLEAN;
     ExtensionUtil::RegisterFunction(instance, read_gsheet_function);
+
+    // Register Secret functions
+	CreateGsheetSecretFunctions::Register(instance);
+
 }
 
 void GsheetsExtension::Load(DuckDB &db) {
