@@ -2,7 +2,7 @@
 
 # DuckDB GSheets
 
-This extension, GSheets, allow you to read and write to Google Sheets using DuckDB.
+This extension, GSheets, allows you to read and write to Google Sheets using DuckDB.
 
 ## Usage 
 
