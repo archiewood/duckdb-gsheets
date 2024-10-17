@@ -1,10 +1,8 @@
-# Gsheets
+**🚧 WARNING - Work in Progress**: Here be many dragons 🚧
 
-This repository is based on https://github.com/duckdb/extension-template, check it out if you want to build and ship your own DuckDB extension.
+# DuckDB GSheets
 
----
-
-This extension, Gsheets, allow you to read and write to Google Sheets.
+This extension, GSheets, allow you to read and write to Google Sheets using DuckDB.
 
 ## Usage 
 
@@ -27,10 +25,26 @@ SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', sheet=
 
 ## Getting a Google API Access Token
 
-1. Create a service account in the Google Cloud Console
-2. Generate a key and download the JSON file
-3. Share the sheet with the client_email in the service account
-4. Generate a token with the gcloud CLI `gcloud auth application-default print-access-token`
+To connect DuckDB to Google Sheets, you’ll need to create a Service Account through the Google API, and use it to generate an access token:
+
+1. Navigate to the [Google API Console](https://console.developers.google.com/apis/library).
+2. Create a new project.
+3. Search for the Google Sheets API and enable it.
+4. In the left-hand navigation, go to the **Credentials** tab.
+5. Click **+ Create Credentials** and select **Service Account**.
+6. Name the Service Account and assign it the **Owner** role for your project. Click **Done** to save.
+7. From the **Service Accounts** page, click on the Service Account you just created.
+8. Go to the **Keys** tab, then click **Add Key** > **Create New Key**.
+9. Choose **JSON**, then click **Create**. The JSON file will download automatically.
+10. Download and install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
+11. Run the following command to generate an access token:
+    ```bash
+    gcloud auth print-access-token --scopes=https://www.googleapis.com/auth/spreadsheets
+    ```
+12. Open your Google Sheet and share it with the Service Account email.
+13. Run DuckDB and load the extension
+
+This token will periodically expire - you can re-run the above command again to generate a new one.
 
 ## Building
 ### Managing dependencies
@@ -60,16 +74,7 @@ The main binaries that will be built are:
 ## Running the extension
 To run the extension code, simply start the shell with `./build/release/duckdb`.
 
-Now we can use the features from the extension directly in DuckDB. The template contains a single scalar function `gsheets()` that takes a string arguments and returns a string:
-```
-D select gsheets('Jane') as result;
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│ Gsheets Jane 🐥 │
-└───────────────┘
-```
+Now we can use the features from the extension directly in DuckDB.
 
 ## Running the tests
 Different tests can be created for DuckDB extensions. The primary way of testing DuckDB extensions should be the SQL tests in `./test/sql`. These SQL tests can be run using:
