@@ -36,6 +36,9 @@ using json = nlohmann::json;
 #include "duckdb/main/secret/secret.hpp"
 #include "duckdb/main/secret/secret_manager.hpp"
 
+// Copy
+#include "gsheets_copy.hpp"
+
 
 namespace duckdb {
 
@@ -332,6 +335,10 @@ static void LoadInternal(DatabaseInstance &instance) {
     read_gsheet_function.named_parameters["header"] = LogicalType::BOOLEAN;
     read_gsheet_function.named_parameters["sheet"] = LogicalType::VARCHAR;
     ExtensionUtil::RegisterFunction(instance, read_gsheet_function);
+
+    // Register GSheetCopyFunction
+    GSheetCopyFunction gsheet_copy_function;
+    ExtensionUtil::RegisterFunction(instance, gsheet_copy_function);
 
     // Register Secret functions
 	CreateGsheetSecretFunctions::Register(instance);
