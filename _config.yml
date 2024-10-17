@@ -1,1 +1,4 @@
-theme: jekyll-theme-minima
+theme: minima
+
+minima:
+  skin: dark
