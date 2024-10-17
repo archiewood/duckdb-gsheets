@@ -19,14 +19,6 @@ struct ReadSheetBindData : public TableFunctionData {
     ReadSheetBindData(string sheet_id, string token, bool header, string sheet_name);
 };
 
-struct SheetData {
-    std::string range;
-    std::string majorDimension;
-    std::vector<std::vector<std::string>> values;
-};
-
-SheetData parseJson(const std::string& json_str);
-
 void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output);
 
 unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBindInput &input,

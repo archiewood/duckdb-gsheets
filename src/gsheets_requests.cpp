@@ -81,6 +81,7 @@ namespace duckdb
         SSL_CTX_free(ctx);
 
         // Extract body from response
+        // Extract body from response
         size_t body_start = response.find("\r\n\r\n");
         if (body_start != std::string::npos)
         {
@@ -90,11 +91,16 @@ namespace duckdb
         return response;
     }
 
-    std::string fetch_sheet_data(const std::string &sheet_id, const std::string &token, const std::string &sheet_name)
+    std::string fetch_sheet_data(const std::string &sheet_id, const std::string &token, const std::string &sheet_name, HttpMethod method, const std::string &body)
     {
         std::string host = "sheets.googleapis.com";
         std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name;
 
-        return perform_https_request(host, path, token);
+        if (method == HttpMethod::PUT) {
+            path += "?valueInputOption=RAW";
+        }
+
+        return perform_https_request(host, path, token, method, body);
+        return perform_https_request(host, path, token, method, body);
     }
 }

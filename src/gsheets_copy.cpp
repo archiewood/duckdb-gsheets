@@ -1,7 +1,11 @@
 #include "gsheets_copy.hpp"
+#include "gsheets_requests.hpp"
+#include "gsheets_auth.hpp"
+#include "gsheets_utils.hpp"
+
 #include "duckdb/common/serializer/buffered_file_writer.hpp"
 #include "duckdb/common/file_system.hpp"
-#include <iostream>
+#include "duckdb/main/secret/secret_manager.hpp"
 #include <json.hpp>
 
 using json = nlohmann::json;
@@ -19,12 +23,15 @@ namespace duckdb
 
     struct GSheetCopyGlobalState : public GlobalFunctionData
     {
-        explicit GSheetCopyGlobalState(ClientContext &context)
+        explicit GSheetCopyGlobalState(ClientContext &context, const string &sheet_id, const string &token, const string &sheet_name)
+            : sheet_id(sheet_id), token(token), sheet_name(sheet_name)
         {
         }
 
     public:
-        unique_ptr<BufferedFileWriter> file_writer;
+        string sheet_id;
+        string token;
+        string sheet_name;
     };
 
     struct GSheetWriteBindData : public TableFunctionData
@@ -38,10 +45,34 @@ namespace duckdb
 
     unique_ptr<GlobalFunctionData> GSheetCopyFunction::GSheetWriteInitializeGlobal(ClientContext &context, FunctionData &bind_data, const string &file_path)
     {
-        auto result = make_uniq<GSheetCopyGlobalState>(context);
-        auto &fs = FileSystem::GetFileSystem(context);
-        result->file_writer = make_uniq<BufferedFileWriter>(fs, file_path);
-        return std::move(result);
+        auto &secret_manager = SecretManager::Get(context);
+        auto transaction = CatalogTransaction::GetSystemCatalogTransaction(context);
+        auto secret_match = secret_manager.LookupSecret(transaction, "gsheet", "gsheet");
+        
+        if (!secret_match.HasMatch()) {
+            throw InvalidInputException("No 'gsheet' secret found. Please create a secret with 'CREATE SECRET' first.");
+        }
+
+        auto &secret = secret_match.GetSecret();
+        if (secret.GetType() != "gsheet") {
+            throw InvalidInputException("Invalid secret type. Expected 'gsheet', got '%s'", secret.GetType());
+        }
+
+        const auto *kv_secret = dynamic_cast<const KeyValueSecret*>(&secret);
+        if (!kv_secret) {
+            throw InvalidInputException("Invalid secret format for 'gsheet' secret");
+        }
+
+        Value token_value;
+        if (!kv_secret->TryGetValue("token", token_value)) {
+            throw InvalidInputException("'token' not found in 'gsheet' secret");
+        }
+
+        std::string token = token_value.ToString();
+        std::string sheet_id = extract_sheet_id(file_path);
+        std::string sheet_name = "Sheet1"; // TODO: make this configurable
+
+        return make_uniq<GSheetCopyGlobalState>(context, sheet_id, token, sheet_name);
     }
 
     unique_ptr<LocalFunctionData> GSheetCopyFunction::GSheetWriteInitializeLocal(ExecutionContext &context, FunctionData &bind_data_p)
@@ -52,9 +83,13 @@ namespace duckdb
     void GSheetCopyFunction::GSheetWriteSink(ExecutionContext &context, FunctionData &bind_data_p, GlobalFunctionData &gstate_p, LocalFunctionData &lstate, DataChunk &input)
     {
         input.Flatten();
+        auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
+
         // Create object ready to write to Google Sheet
         json sheet_data;
-        sheet_data["range"] = "A1"; // Assuming we start from A1, adjust as needed
+
+        // TODO: make this configurable
+        sheet_data["range"] = "Sheet1";
         sheet_data["majorDimension"] = "ROWS";
         
         vector<vector<string>> values;
@@ -89,6 +124,16 @@ namespace duckdb
         }
         sheet_data["values"] = values;
 
-        std::cout << sheet_data.dump() << std::endl;
+        // Convert the JSON object to a string
+        std::string request_body = sheet_data.dump();
+
+        // Make the API call to write data to the Google Sheet
+        std::string response = fetch_sheet_data(gstate.sheet_id, gstate.token, gstate.sheet_name, HttpMethod::PUT, request_body);
+
+        // Check for errors in the response
+        json response_json = parseJson(response);
+        if (response_json.contains("error")) {
+            throw duckdb::IOException("Error writing to Google Sheet: " + response_json["error"]["message"].get<std::string>());
+        }
     }
 } // namespace duckdb

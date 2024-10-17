@@ -1,7 +1,10 @@
 #include "gsheets_utils.hpp"
 #include "duckdb/common/exception.hpp"
 #include <regex>
+#include <json.hpp>
+#include <iostream>
 
+using json = nlohmann::json;
 namespace duckdb {
 
 std::string extract_sheet_id(const std::string& input) {
@@ -21,6 +24,50 @@ std::string extract_sheet_id(const std::string& input) {
     }
 
     throw duckdb::InvalidInputException("Invalid Google Sheets URL or ID");
+}
+
+json parseJson(const std::string& json_str) {
+    try {
+        // Find the start of the JSON object
+        size_t start = json_str.find('{');
+        if (start == std::string::npos) {
+            throw std::runtime_error("No JSON object found in the response");
+        }
+
+        // Find the end of the JSON object
+        size_t end = json_str.rfind('}');
+        if (end == std::string::npos) {
+            throw std::runtime_error("No closing brace found in the JSON response");
+        }
+
+        // Extract the JSON object
+        std::string clean_json = json_str.substr(start, end - start + 1);
+
+        json j = json::parse(clean_json);
+        return j;
+    } catch (const json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        std::cerr << "Raw JSON string: " << json_str << std::endl;
+        throw;
+    }
+}
+
+SheetData getSheetData(const json& j) {
+    SheetData result;
+    if (j.contains("range") && j.contains("majorDimension") && j.contains("values")) {
+        result.range = j["range"].get<std::string>();
+        result.majorDimension = j["majorDimension"].get<std::string>();
+        result.values = j["values"].get<std::vector<std::vector<std::string>>>();
+    } else if (j.contains("error")) {
+        string message = j["error"]["message"].get<std::string>();
+            int code = j["error"]["code"].get<int>();
+            throw std::runtime_error("Google Sheets API error: " + std::to_string(code) + " - " + message);
+        } else {
+        std::cerr << "JSON does not contain expected fields" << std::endl;
+        std::cerr << "Raw JSON string: " << j.dump() << std::endl;
+        throw;
+    }
+    return result;
 }
 
 } // namespace duckdb
