@@ -17,6 +17,10 @@ include_directories(third_party)
 set(EXTENSION_SOURCES 
     src/gsheets_extension.cpp
     src/gsheets_auth.cpp
+    src/gsheets_copy.cpp
+    src/gsheets_requests.cpp
+    src/gsheets_read.cpp
+    src/gsheets_utils.cpp
 )
 
 build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
