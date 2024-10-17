@@ -8,3 +8,4 @@ test/python/__pycache__/
 .Rhistory
 vcpkg_installed
 token.txt
+.env
