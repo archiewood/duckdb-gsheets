@@ -13,34 +13,18 @@
 
 
 #include "duckdb.hpp"
-#include "duckdb/common/exception.hpp"
-#include "duckdb/common/string_util.hpp"
-#include "duckdb/function/scalar_function.hpp"
 #include "duckdb/main/extension_util.hpp"
-#include <duckdb/parser/parsed_data/create_scalar_function_info.hpp>
 #include "duckdb/function/table_function.hpp"
-#include "duckdb/common/types/data_chunk.hpp"
-#include "duckdb/common/types/vector.hpp"
-#include "duckdb/main/secret/secret.hpp"
-#include "duckdb/main/secret/secret_manager.hpp"
 
 
 // Standard library
 #include <string>
-#include <unordered_map>
-#include <algorithm>
-#include <iostream>
-#include <regex>
-#include <fstream>
-#include <sstream>
-using namespace std;
 
 
 // GSheets extension
 #include "gsheets_extension.hpp"
 #include "gsheets_auth.hpp"
 #include "gsheets_copy.hpp"
-#include "gsheets_requests.hpp"
 #include "gsheets_read.hpp"
 
 // OpenSSL linked through vcpkg
@@ -49,17 +33,9 @@ using namespace std;
 #include <openssl/err.h>
 #include <openssl/bio.h>
 
-// JSON library
-#include <json.hpp>
-
-using json = nlohmann::json;
-
 
 
 namespace duckdb {
-
-
-
 
 #include <string>
 #include <vector>
@@ -86,7 +62,6 @@ static void LoadInternal(DatabaseInstance &instance) {
 
     // Register Secret functions
 	CreateGsheetSecretFunctions::Register(instance);
-
 }
 
 void GsheetsExtension::Load(DuckDB &db) {
