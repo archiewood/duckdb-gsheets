@@ -53,7 +53,27 @@ namespace duckdb
             for (idx_t c = 0; c < input.ColumnCount(); c++)
             {
                 auto &col = input.data[c];
-                std::cout << FlatVector::GetData<string_t>(col)[r].GetData() << ", ";
+                switch (col.GetType().id()) {
+                    case LogicalTypeId::VARCHAR:
+                        std::cout << FlatVector::GetData<string_t>(col)[r].GetData();
+                        break;
+                    case LogicalTypeId::INTEGER:
+                        std::cout << FlatVector::GetData<int32_t>(col)[r];
+                        break;
+                    case LogicalTypeId::BIGINT:
+                        std::cout << FlatVector::GetData<int64_t>(col)[r];
+                        break;
+                    case LogicalTypeId::DOUBLE:
+                        std::cout << FlatVector::GetData<double>(col)[r];
+                        break;
+                    case LogicalTypeId::BOOLEAN:
+                        std::cout << (FlatVector::GetData<bool>(col)[r] ? "true" : "false");
+                        break;
+                    default:
+                        std::cout << "Type not implemented";
+                        break;
+                }
+                std::cout << ", ";
             }
             std::cout << std::endl;
         }
