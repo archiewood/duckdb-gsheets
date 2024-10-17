@@ -10,24 +10,10 @@ GSheetCopyFunction::GSheetCopyFunction() : CopyFunction("gsheet") {
 	copy_to_initialize_global = GSheetWriteInitializeGlobal;
 	copy_to_initialize_local = GSheetWriteInitializeLocal;
 	copy_to_sink = GSheetWriteSink;
-	copy_to_combine = GSheetWriteCombine;
-	copy_to_finalize = GSheetWriteFinalize;
 }
 
 struct GSheetCopyGlobalState : public GlobalFunctionData {
 	explicit GSheetCopyGlobalState(ClientContext &context) {
-	}
-
-	void WriteChunk(DataChunk &chunk) {
-		chunk.Flatten();
-		for (idx_t r = 0; r < chunk.size(); r++) {
-			for (idx_t c = 0; c < chunk.ColumnCount(); c++) {
-				auto &col = chunk.data[c];
-				//writer.WriteValue(col, r);
-                std::cout << FlatVector::GetData<string_t>(col)[r].GetData() << ", ";
-			}
-            std::cout << std::endl;
-		}
 	}
 
 
@@ -54,15 +40,13 @@ unique_ptr<LocalFunctionData> GSheetCopyFunction::GSheetWriteInitializeLocal(Exe
 }
 
 void GSheetCopyFunction::GSheetWriteSink(ExecutionContext &context, FunctionData &bind_data_p, GlobalFunctionData &gstate_p, LocalFunctionData &lstate, DataChunk &input) {
-	auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
-	gstate.WriteChunk(input);
+    input.Flatten();
+		for (idx_t r = 0; r < input.size(); r++) {
+			for (idx_t c = 0; c < input.ColumnCount(); c++) {
+				auto &col = input.data[c];
+                std::cout << FlatVector::GetData<string_t>(col)[r].GetData() << ", ";
+			}
+            std::cout << std::endl;
+		}
 }
-
-void GSheetCopyFunction::GSheetWriteCombine(ExecutionContext &context, FunctionData &bind_data, GlobalFunctionData &gstate, LocalFunctionData &lstate) {
-}
-
-void GSheetCopyFunction::GSheetWriteFinalize(ClientContext &context, FunctionData &bind_data, GlobalFunctionData &gstate_p) {
-	auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
-}
-
 } // namespace duckdb
