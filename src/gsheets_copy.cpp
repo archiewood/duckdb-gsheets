@@ -38,40 +38,30 @@ public:
 
 struct GSheetWriteBindData : public TableFunctionData {};
 
-unique_ptr<FunctionData> GSheetCopyFunction::GSheetWriteBind(ClientContext &context,
-                                                                             CopyFunctionBindInput &input,
-                                                                             const vector<string> &names,
-                                                                             const vector<LogicalType> &sql_types) {
+unique_ptr<FunctionData> GSheetCopyFunction::GSheetWriteBind(ClientContext &context, CopyFunctionBindInput &input, const vector<string> &names, const vector<LogicalType> &sql_types) {
 	return make_uniq<GSheetWriteBindData>();
 }
 
-unique_ptr<GlobalFunctionData>
-GSheetCopyFunction::GSheetWriteInitializeGlobal(ClientContext &context, FunctionData &bind_data,
-                                                                const string &file_path) {
+unique_ptr<GlobalFunctionData> GSheetCopyFunction::GSheetWriteInitializeGlobal(ClientContext &context, FunctionData &bind_data, const string &file_path) {
 	auto result = make_uniq<GSheetCopyGlobalState>(context);
 	auto &fs = FileSystem::GetFileSystem(context);
 	result->file_writer = make_uniq<BufferedFileWriter>(fs, file_path);
 	return std::move(result);
 }
 
-unique_ptr<LocalFunctionData>
-GSheetCopyFunction::GSheetWriteInitializeLocal(ExecutionContext &context, FunctionData &bind_data_p) {
+unique_ptr<LocalFunctionData> GSheetCopyFunction::GSheetWriteInitializeLocal(ExecutionContext &context, FunctionData &bind_data_p) {
 	return make_uniq<LocalFunctionData>();
 }
 
-void GSheetCopyFunction::GSheetWriteSink(ExecutionContext &context, FunctionData &bind_data_p,
-                                                         GlobalFunctionData &gstate_p, LocalFunctionData &lstate,
-                                                         DataChunk &input) {
+void GSheetCopyFunction::GSheetWriteSink(ExecutionContext &context, FunctionData &bind_data_p, GlobalFunctionData &gstate_p, LocalFunctionData &lstate, DataChunk &input) {
 	auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
 	gstate.WriteChunk(input);
 }
 
-void GSheetCopyFunction::GSheetWriteCombine(ExecutionContext &context, FunctionData &bind_data,
-                                                            GlobalFunctionData &gstate, LocalFunctionData &lstate) {
+void GSheetCopyFunction::GSheetWriteCombine(ExecutionContext &context, FunctionData &bind_data, GlobalFunctionData &gstate, LocalFunctionData &lstate) {
 }
 
-void GSheetCopyFunction::GSheetWriteFinalize(ClientContext &context, FunctionData &bind_data,
-                                                             GlobalFunctionData &gstate_p) {
+void GSheetCopyFunction::GSheetWriteFinalize(ClientContext &context, FunctionData &bind_data, GlobalFunctionData &gstate_p) {
 	auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
 }
 
