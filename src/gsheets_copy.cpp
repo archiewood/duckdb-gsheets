@@ -2,6 +2,10 @@
 #include "duckdb/common/serializer/buffered_file_writer.hpp"
 #include "duckdb/common/file_system.hpp"
 #include <iostream>
+#include <json.hpp>
+
+using json = nlohmann::json;
+
 namespace duckdb
 {
 
@@ -48,34 +52,43 @@ namespace duckdb
     void GSheetCopyFunction::GSheetWriteSink(ExecutionContext &context, FunctionData &bind_data_p, GlobalFunctionData &gstate_p, LocalFunctionData &lstate, DataChunk &input)
     {
         input.Flatten();
+        // Create object ready to write to Google Sheet
+        json sheet_data;
+        sheet_data["range"] = "A1"; // Assuming we start from A1, adjust as needed
+        sheet_data["majorDimension"] = "ROWS";
+        
+        vector<vector<string>> values;
         for (idx_t r = 0; r < input.size(); r++)
         {
+            vector<string> row;
             for (idx_t c = 0; c < input.ColumnCount(); c++)
             {
                 auto &col = input.data[c];
                 switch (col.GetType().id()) {
                     case LogicalTypeId::VARCHAR:
-                        std::cout << FlatVector::GetData<string_t>(col)[r].GetData();
+                        row.push_back(FlatVector::GetData<string_t>(col)[r].GetString());
                         break;
                     case LogicalTypeId::INTEGER:
-                        std::cout << FlatVector::GetData<int32_t>(col)[r];
+                        row.push_back(to_string(FlatVector::GetData<int32_t>(col)[r]));
                         break;
                     case LogicalTypeId::BIGINT:
-                        std::cout << FlatVector::GetData<int64_t>(col)[r];
+                        row.push_back(to_string(FlatVector::GetData<int64_t>(col)[r]));
                         break;
                     case LogicalTypeId::DOUBLE:
-                        std::cout << FlatVector::GetData<double>(col)[r];
+                        row.push_back(to_string(FlatVector::GetData<double>(col)[r]));
                         break;
                     case LogicalTypeId::BOOLEAN:
-                        std::cout << (FlatVector::GetData<bool>(col)[r] ? "true" : "false");
+                        row.push_back(FlatVector::GetData<bool>(col)[r] ? "TRUE" : "FALSE");
                         break;
                     default:
-                        std::cout << "Type not implemented";
+                        row.push_back("Type not implemented");
                         break;
                 }
-                std::cout << ", ";
             }
-            std::cout << std::endl;
+            values.push_back(row);
         }
+        sheet_data["values"] = values;
+
+        std::cout << sheet_data.dump() << std::endl;
     }
 } // namespace duckdb
