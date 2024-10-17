@@ -1,13 +1,9 @@
 #include "gsheets_copy.hpp"
-#include "gsheets_writer.hpp"
 #include "duckdb/common/serializer/buffered_file_writer.hpp"
 #include "duckdb/common/file_system.hpp"
 #include <iostream>
 namespace duckdb {
 
-void GSheetCopyState::Initialize(ClientContext &context) {
-    std::cout << "GSheetCopyState initialized successfully" << std::endl;
-}
 
 GSheetCopyFunction::GSheetCopyFunction() : CopyFunction("gsheet") {
 	copy_to_bind = GSheetWriteBind;
@@ -20,16 +16,10 @@ GSheetCopyFunction::GSheetCopyFunction() : CopyFunction("gsheet") {
 
 struct GSheetCopyGlobalState : public GlobalFunctionData {
 	explicit GSheetCopyGlobalState(ClientContext &context) {
-		copy_state.Initialize(context);
-	}
-
-	void Flush(GSheetWriter &writer) {
-		file_writer->WriteData(writer.stream.GetData(), writer.stream.GetPosition());
 	}
 
 	void WriteChunk(DataChunk &chunk) {
 		chunk.Flatten();
-		GSheetWriter writer(copy_state);
 		for (idx_t r = 0; r < chunk.size(); r++) {
 			for (idx_t c = 0; c < chunk.ColumnCount(); c++) {
 				auto &col = chunk.data[c];
@@ -38,18 +28,12 @@ struct GSheetCopyGlobalState : public GlobalFunctionData {
 			}
             std::cout << std::endl;
 		}
-		Flush(writer);
 	}
 
-	void Flush() {
-		// flush and close the file
-		file_writer->Flush();
-		file_writer.reset();
-	}
+
 
 public:
 	unique_ptr<BufferedFileWriter> file_writer;
-	GSheetCopyState copy_state;
 };
 
 struct GSheetWriteBindData : public TableFunctionData {};
@@ -89,8 +73,6 @@ void GSheetCopyFunction::GSheetWriteCombine(ExecutionContext &context, FunctionD
 void GSheetCopyFunction::GSheetWriteFinalize(ClientContext &context, FunctionData &bind_data,
                                                              GlobalFunctionData &gstate_p) {
 	auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
-	// write the footer and close the file
-	gstate.Flush();
 }
 
 } // namespace duckdb
