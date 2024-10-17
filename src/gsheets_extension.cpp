@@ -1,24 +1,46 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include "gsheets_extension.hpp"
-#include "gsheets_auth.hpp"
+// TODO
+// - Remove standard library functions and types and replace with DuckDB types and functions
+// - Remove JSON library and use DuckDB JSON functions instead?
+// - Remove OpenSSL and use DuckDB HTTPFS functions instead?
+// - Fix larger read_gsheet response parsing which currently contains unescaped range characters
+// - Handle types better throughout
+// - OAuth flow for token management
+// - Docs: how to get a token
+// - Tests: Copy
+
+
+
 #include "duckdb.hpp"
 #include "duckdb/common/exception.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/function/scalar_function.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include <duckdb/parser/parsed_data/create_scalar_function_info.hpp>
-
-#include <sstream>
 #include "duckdb/function/table_function.hpp"
 #include "duckdb/common/types/data_chunk.hpp"
 #include "duckdb/common/types/vector.hpp"
+#include "duckdb/main/secret/secret.hpp"
+#include "duckdb/main/secret/secret_manager.hpp"
+
+
+// Standard library
 #include <string>
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
 #include <regex>
+#include <fstream>
+#include <sstream>
 using namespace std;
+
+
+// GSheets extension
+#include "gsheets_extension.hpp"
+#include "gsheets_auth.hpp"
+#include "gsheets_copy.hpp"
+#include "gsheets_requests.hpp"
 
 // OpenSSL linked through vcpkg
 #include <openssl/opensslv.h>
@@ -26,73 +48,14 @@ using namespace std;
 #include <openssl/err.h>
 #include <openssl/bio.h>
 
+// JSON library
 #include <json.hpp>
 
 using json = nlohmann::json;
 
-#include <fstream>
-
-// Secrets
-#include "duckdb/main/secret/secret.hpp"
-#include "duckdb/main/secret/secret_manager.hpp"
-
-// Copy
-#include "gsheets_copy.hpp"
 
 
 namespace duckdb {
-
-
-
-
-static std::string perform_https_request(const std::string& host, const std::string& path, const std::string& token) {
-    std::string response;
-    SSL_CTX *ctx = SSL_CTX_new(TLS_client_method());
-    if (!ctx) {
-        throw duckdb::IOException("Failed to create SSL context");
-    }
-
-    BIO *bio = BIO_new_ssl_connect(ctx);
-    SSL *ssl;
-    BIO_get_ssl(bio, &ssl);
-    SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
-
-    BIO_set_conn_hostname(bio, (host + ":443").c_str());
-
-    if (BIO_do_connect(bio) <= 0) {
-        BIO_free_all(bio);
-        SSL_CTX_free(ctx);
-        throw duckdb::IOException("Failed to connect");
-    }
-
-    std::string request = "GET " + path + " HTTP/1.1\r\n";
-    request += "Host: " + host + "\r\n";
-    request += "Authorization: Bearer " + token + "\r\n";
-    request += "Connection: close\r\n\r\n";
-
-    if (BIO_write(bio, request.c_str(), request.length()) <= 0) {
-        BIO_free_all(bio);
-        SSL_CTX_free(ctx);
-        throw duckdb::IOException("Failed to write request");
-    }
-
-    char buffer[1024];
-    int len;
-    while ((len = BIO_read(bio, buffer, sizeof(buffer))) > 0) {
-        response.append(buffer, len);
-    }
-
-    BIO_free_all(bio);
-    SSL_CTX_free(ctx);
-
-    // Extract body from response
-    size_t body_start = response.find("\r\n\r\n");
-    if (body_start != std::string::npos) {
-        return response.substr(body_start + 4);
-    }
-
-    return response;
-}
 
 static std::string fetch_sheet_data(const std::string& sheet_id, const std::string& token, const std::string& sheet_name) {
     std::string host = "sheets.googleapis.com";
@@ -336,7 +299,7 @@ static void LoadInternal(DatabaseInstance &instance) {
     read_gsheet_function.named_parameters["sheet"] = LogicalType::VARCHAR;
     ExtensionUtil::RegisterFunction(instance, read_gsheet_function);
 
-    // Register GSheetCopyFunction
+    // Register COPY TO (FORMAT 'gsheet') function
     GSheetCopyFunction gsheet_copy_function;
     ExtensionUtil::RegisterFunction(instance, gsheet_copy_function);
 
