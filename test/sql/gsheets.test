@@ -2,6 +2,8 @@
 # description: test gsheets extension
 # group: [gsheets]
 
+require-env TOKEN
+
 # Before we load the extension, this will fail
 statement error
 FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', header=true);
@@ -13,7 +15,7 @@ require gsheets
 
 # Create a secret NB must substitute a token, do not commit!
 statement ok
-create secret test_secret (type gsheet,token 'ya29.c.c0ASRK0GZFj9CveixCNRFyqgjHNeBAkgwUtLvl17DINAEoILxBTLtOn9TgXgiy-THL2V5Sb575YHE7-Y64g7LsmF2UNk2q9Blhzon3EFHWAWEP5Z54EJ6fCbhuCNIP2ZnWcHhvgXKv6uXgBhjgszb5uPzjusx5L5vg8D0FyYx78YThLx4N17nixNPS_1Etkmq-930-6Q-NQyCOjmlB9eh_GsgGKR2ghPSAFLf7XgFd6hFk3o719nUVtZ76mw1b1S7x3ksWNJoJW0fq_sVjxizEjzPCbcLF1qFOmWHtR2M4lb1_4NphSjLhsPMfyxqRpsqfdJjipJC394bqeKaYcEixYAlJgMuuJbpZf51VkwvqLTmrO7l45iCQjNNGx3p8T389DS2icWmpex8BuU9R1p8wrln0OFWn-6kr0d8mvYd0M2ee2tao7Ux5u8W0Sbxsuv7omMylrViB2iQ8y_1rJXx_SM9115SJbiiabmfW05Q81ph1uWZ9ea_IcQbptBequrO1_8xVMoc5RdV1-QtaeOVwhoxusxXv9FaeBJ1-5Z2ov_nyjtgRosl5xd1t9Fxzznw8klV-V_VQiYQctb0e9U5VnI6RMS77R0eZgIjaxh8rsd_vcfvUkQp4jrvhb5um3Bgxlge0l2jsBfw9RJI0-Qy_ktfYd5-2-O9Mjh3adFwFe4_6QrMik0fwp0qw2kq7MXWBnkWIgF8F0ZFbn9U4W9xZrq1iVy8mrkRaehz_9w_Q0x0getlg2dlhJU5FR15mj2aY3172M52vUm_2ejceQUQplQFxeIn_3nbJkSl8_q5fVWc59zlFYvU3gatOWabnxFsVt-6O4_W59QUVduy3JUsfv2veW1a84hy14mxv3QqQjirF9OFZkJVdR1sJSwjz3tdueqztrk0qQ5q__lB4M0lkfyYQMgpS1wJQzYIjhl83XIxyQImvV_gVfgpm3n3d2VikVQZeVRSwYRIUJYJ1QuO8_2uvFucrQQ4Zwj9Xq25y_7fV_pY716i4kzw');
+create secret test_secret (type gsheet, token '${TOKEN}');
 
 # Confirm the extension works
 query III
