@@ -19,6 +19,7 @@ jobs:
       duckdb_version: main
       ci_tools_version: main
       extension_name: gsheets
+      exclude_archs: 'windows_amd64_rtools'
 
   duckdb-stable-build:
     name: Build extension binaries
@@ -27,6 +28,7 @@ jobs:
       duckdb_version: v1.1.1
       ci_tools_version: v1.1.1
       extension_name: gsheets
+      exclude_archs: 'windows_amd64_rtools'
 
   duckdb-stable-deploy:
     name: Deploy extension binaries
@@ -36,4 +38,5 @@ jobs:
     with:
       duckdb_version: v1.1.1
       extension_name: gsheets
+      exclude_archs: 'windows_amd64_rtools'
       deploy_latest: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' }}
