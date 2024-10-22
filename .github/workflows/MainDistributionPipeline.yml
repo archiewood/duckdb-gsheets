@@ -7,6 +7,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  TOKEN: ${{ secrets.TOKEN }}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}
   cancel-in-progress: true
@@ -19,6 +22,7 @@ jobs:
       duckdb_version: main
       ci_tools_version: main
       extension_name: gsheets
+    secrets: inherit
 
   duckdb-stable-build:
     name: Build extension binaries
@@ -27,6 +31,7 @@ jobs:
       duckdb_version: v1.1.1
       ci_tools_version: v1.1.1
       extension_name: gsheets
+    secrets: inherit
 
   duckdb-stable-deploy:
     name: Deploy extension binaries
