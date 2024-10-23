@@ -8,7 +8,7 @@ namespace duckdb
 {
 
     std::string perform_https_request(const std::string &host, const std::string &path, const std::string &token,
-                                      HttpMethod method, const std::string &body)
+                                      HttpMethod method, const std::string &body, const std::string &content_type)
     {
         std::string response;
         SSL_CTX *ctx = SSL_CTX_new(TLS_client_method());
@@ -52,7 +52,7 @@ namespace duckdb
 
         if (!body.empty())
         {
-            request += "Content-Type: application/json\r\n";
+            request += "Content-Type: " + content_type + "\r\n";
             request += "Content-Length: " + std::to_string(body.length()) + "\r\n";
         }
 
@@ -100,7 +100,6 @@ namespace duckdb
             path += "?valueInputOption=RAW";
         }
 
-        return perform_https_request(host, path, token, method, body);
         return perform_https_request(host, path, token, method, body);
     }
 }

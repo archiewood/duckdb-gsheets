@@ -70,4 +70,22 @@ SheetData getSheetData(const json& j) {
     return result;
 }
 
+std::string generate_random_string(size_t length) {
+    static const char charset[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<> distribution(0, sizeof(charset) - 2);
+
+    std::string result;
+    result.reserve(length);
+    for (size_t i = 0; i < length; ++i) {
+        result.push_back(charset[distribution(generator)]);
+    }
+    return result;
+}
+
 } // namespace duckdb

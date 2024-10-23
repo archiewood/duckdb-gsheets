@@ -7,6 +7,8 @@ namespace duckdb {
 
 std::string read_token_from_file(const std::string& file_path);
 
+std::string InitiateOAuthFlow();
+
 struct CreateGsheetSecretFunctions {
 public:
 	//! Register all CreateSecretFunctions
