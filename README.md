@@ -1,6 +1,6 @@
 **🚧 WARNING - Work in Progress**: Here be many dragons 🚧
 
-# DuckDB GSheets
+# <img src="img/duckdb-gsheets.png" alt="DuckDB GSheets" style="height: 1em;"/> DuckDB GSheets 
 
 This extension, GSheets, allows you to read and write to Google Sheets using DuckDB.
 
