@@ -43,12 +43,16 @@ To connect DuckDB to Google Sheets, you’ll need to create a Service Account th
 8. Go to the **Keys** tab, then click **Add Key** > **Create New Key**.
 9. Choose **JSON**, then click **Create**. The JSON file will download automatically.
 10. Download and install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
-11. Run the following command to generate an access token:
+11. Run the following command to login to the gcloud CLI with the Service Account using the newly created JSON file
+    ```bash
+    gcloud auth activate-service-account --key-file /path/to/key/file
+    ```
+12. Run the following command to generate an access token:
     ```bash
     gcloud auth print-access-token --scopes=https://www.googleapis.com/auth/spreadsheets
     ```
-12. Open your Google Sheet and share it with the Service Account email.
-13. Run DuckDB and load the extension
+13. Open your Google Sheet and share it with the Service Account email.
+14. Run DuckDB and load the extension
 
 This token will periodically expire - you can re-run the above command again to generate a new one.
 
