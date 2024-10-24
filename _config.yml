@@ -8,7 +8,7 @@ include:
 
 exclude:
   - "**/*"
-  - *.md
+  - "*.md"
 
 
 plugins:
