@@ -72,6 +72,10 @@ namespace duckdb
         std::string sheet_id = extract_sheet_id(file_path);
         std::string sheet_name = "Sheet1"; // TODO: make this configurable
 
+        // If writing, clear out the entire sheet first.
+        // Do this here in the initialization so that it only happens once
+        std::string response = delete_sheet_data(sheet_id, token, sheet_name);
+
         return make_uniq<GSheetCopyGlobalState>(context, sheet_id, token, sheet_name);
     }
 
@@ -92,6 +96,8 @@ namespace duckdb
         sheet_data["range"] = "Sheet1";
         sheet_data["majorDimension"] = "ROWS";
         
+        // TODO: Add column headers
+
         vector<vector<string>> values;
         for (idx_t r = 0; r < input.size(); r++)
         {
@@ -129,9 +135,6 @@ namespace duckdb
 
         // Make the API call to write data to the Google Sheet
         // Today, this is only append.
-        // To overwrite, need to detect if we are the first data chunk and clear out the sheet. 
-        // Is there a way to force that to happen only once, even in the presence of multithreading?
-        // Maybe this? https://github.com/duckdb/duckdb/pull/7368
         std::string response = fetch_sheet_data(gstate.sheet_id, gstate.token, gstate.sheet_name, HttpMethod::POST, request_body);
 
         // Check for errors in the response
