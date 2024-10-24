@@ -5,6 +5,7 @@
 #include "duckdb/main/secret/secret.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include <fstream>
+#include <cstdlib>
 
 namespace duckdb
 {
@@ -141,9 +142,19 @@ namespace duckdb
         // Instruct the user to visit the URL and grant permission
         std::cout << "Visit the below URL to authorize DuckDB GSheets" << std::endl << std::endl;
         std::cout << auth_request_url << std::endl << std::endl;
-        std::cout << "After granting permission, you will be redirected to a page with an authorization code." << std::endl << std::endl;
-        std::cout << "Please enter the authorization code: ";
+        
 
+        // Open the URL in the user's default browser
+        #ifdef _WIN32
+            system(("start \"\" \"" + auth_request_url + "\"").c_str());
+        #elif __APPLE__
+            system(("open \"" + auth_request_url + "\"").c_str());
+        #elif __linux__
+            system(("xdg-open \"" + auth_request_url + "\"").c_str());
+        #endif
+
+
+std::cout << "After granting permission, enter the authorization code: ";
         std::string auth_code;
         std::cin >> auth_code;
 
@@ -163,8 +174,6 @@ namespace duckdb
                                                     "application/x-www-form-urlencoded");
 
         json response_json = parseJson(response);
-
-        std::cout << response_json["access_token"] << std::endl;
 
         return response_json["access_token"];
     }
