@@ -116,6 +116,9 @@ namespace duckdb
     std::string InitiateOAuthFlow()
     {
         const std::string client_id = "793766532675-2uvl6j36o8n5e80ubsqhuhrv33m2au0r.apps.googleusercontent.com";
+        // This is actually not a secret in the context of a desktop app, and not required by the OAuth2 PKCE spec, but Google requires it. 
+        // See https://stackoverflow.com/questions/76528208/google-oauth-2-0-authorization-code-with-pkce-requires-a-client-secret
+        const std::string client_secret = "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";
         const std::string redirect_uri = "urn:ietf:wg:oauth:2.0:oob";
         const std::string auth_url = "https://accounts.google.com/o/oauth2/v2/auth";
         const std::string token_url = "https://oauth2.googleapis.com/token";
@@ -123,15 +126,20 @@ namespace duckdb
         // Generate a random state for CSRF protection
         std::string state = generate_random_string(10);
 
-        // Construct the authorization URL
+        // Generate a code verifier and code challenge for PKCE
+        std::string code_verifier = generate_random_string(43);
+        std::string code_challenge = code_verifier;
+
         std::string auth_request_url = auth_url + "?client_id=" + client_id +
                                        "&redirect_uri=" + redirect_uri +
                                        "&response_type=code" +
                                        "&scope=https://www.googleapis.com/auth/spreadsheets" +
-                                       "&state=" + state;
+                                       "&state=" + state +
+                                       "&code_challenge=" + code_challenge +
+                                       "&code_challenge_method=plain";
 
         // Instruct the user to visit the URL and grant permission
-        std::cout << "Visit the below URL to authorize DuckDB GSheets" << std::endl;
+        std::cout << "Visit the below URL to authorize DuckDB GSheets" << std::endl << std::endl;
         std::cout << auth_request_url << std::endl << std::endl;
         std::cout << "After granting permission, you will be redirected to a page with an authorization code." << std::endl << std::endl;
         std::cout << "Please enter the authorization code: ";
@@ -141,9 +149,11 @@ namespace duckdb
 
         // Exchange the authorization code for an access token
         std::string request_body = "client_id=" + client_id +
+                                   "&client_secret=" + client_secret +
                                    "&code=" + auth_code +
                                    "&redirect_uri=" + redirect_uri +
-                                   "&grant_type=authorization_code";
+                                   "&grant_type=authorization_code" +
+                                   "&code_verifier=" + code_verifier;
 
         std::string response = perform_https_request("oauth2.googleapis.com", 
                                                     "/token", 
