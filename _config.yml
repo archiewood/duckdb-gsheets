@@ -5,8 +5,9 @@ title: DuckDB GSheets
 include:
   - README.md
   - privacy.md
+
 exclude:
-  - **/*
+  - "**/*"
 
 plugins:
   - jekyll-sitemap
