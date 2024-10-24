@@ -1,24 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DuckDB GSheets OAuth</title>
-</head>
-<body>
-    <h1>DuckDB GSheets OAuth</h1>
-    <p>Authorization successful! Please copy the code below and paste it into your DuckDB GSheets application:</p>
-    
-    <div class="label">Authorization Code:</div>
-    <div id="authCode" class="code-box"></div>
+<h1>DuckDB GSheets</h1>
+<h2 id="authStatus">Authorization</h2>
+<p id="authMessage"></p>
 
-    <script>
-        function getParameterByName(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
+<pre><code id="authCode" class="code-box"></code></pre>
 
-        document.getElementById('authCode').textContent = getParameterByName('code') || 'No code found';
-    </script>
-</body>
-</html>
+<script>
+    function getParameterByName(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    const authCode = getParameterByName('code');
+    const authStatus = document.getElementById('authStatus');
+    const authMessage = document.getElementById('authMessage');
+    const authCodeElement = document.getElementById('authCode');
+
+    if (authCode) {
+        authStatus.textContent = 'Authorization successful!';
+        authMessage.textContent = 'Copy the code below and paste it into your DuckDB GSheets application:';
+        authCodeElement.textContent = authCode;
+    } else {
+        authStatus.textContent = 'Authorization failed';
+        authMessage.textContent = 'No authorization code was found. Please try the authorization process again.';
+        authCodeElement.style.display = 'none';
+    }
+</script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    .code-box {
+        user-select: all;
+        cursor: pointer;
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    pre {
+        margin: 20px 0;
+    }
+</style>
