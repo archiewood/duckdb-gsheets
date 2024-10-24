@@ -128,7 +128,11 @@ namespace duckdb
         std::string request_body = sheet_data.dump();
 
         // Make the API call to write data to the Google Sheet
-        std::string response = fetch_sheet_data(gstate.sheet_id, gstate.token, gstate.sheet_name, HttpMethod::PUT, request_body);
+        // Today, this is only append.
+        // To overwrite, need to detect if we are the first data chunk and clear out the sheet. 
+        // Is there a way to force that to happen only once, even in the presence of multithreading?
+        // Maybe this? https://github.com/duckdb/duckdb/pull/7368
+        std::string response = fetch_sheet_data(gstate.sheet_id, gstate.token, gstate.sheet_name, HttpMethod::POST, request_body);
 
         // Check for errors in the response
         json response_json = parseJson(response);

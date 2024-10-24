@@ -95,7 +95,8 @@ namespace duckdb
         std::string host = "sheets.googleapis.com";
         std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name;
 
-        if (method == HttpMethod::PUT) {
+        if (method == HttpMethod::POST) {
+            path += ":append";
             path += "?valueInputOption=RAW";
         }
 
