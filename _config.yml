@@ -7,9 +7,9 @@ include:
   - privacy.md
 
 exclude:
+  - "*"
   - "**/*"
-  - "*.md"
-  - "duckdb/*.md"
+  - "**/*.md"
 
 plugins:
   - jekyll-sitemap
