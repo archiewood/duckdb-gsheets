@@ -14,7 +14,10 @@ exclude:
   - test/**
   - third_party/**
   - vcpkg_installed/**
-  
+
+plugins:
+  - jekyll-sitemap
+
 minima:
   skin: dark
 
