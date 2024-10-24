@@ -9,3 +9,4 @@ test/python/__pycache__/
 vcpkg_installed
 token.txt
 .env
+_site/
