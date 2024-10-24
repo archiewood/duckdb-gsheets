@@ -6,6 +6,15 @@ include:
   - README.md
   - PRIVACY.md
 
+exclude:
+  - duckdb/**
+  - docs/**
+  - extension-ci-tools/**
+  - src/**
+  - test/**
+  - third_party/**
+  - vcpkg_installed/**
+  
 minima:
   skin: dark
 
