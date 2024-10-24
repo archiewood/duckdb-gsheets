@@ -15,6 +15,10 @@
 #include "duckdb.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/function/table_function.hpp"
+#include "duckdb/main/config.hpp"
+#include "duckdb/parser/expression/constant_expression.hpp"
+#include "duckdb/parser/expression/function_expression.hpp"
+#include "duckdb/parser/tableref/table_function_ref.hpp"
 
 
 // Standard library
@@ -43,6 +47,26 @@ namespace duckdb {
 #include <algorithm>
 
 
+unique_ptr<TableRef> ReadSheetReplacement(ClientContext &context, ReplacementScanInput &input,
+                                            optional_ptr<ReplacementScanData> data) {
+	auto table_name = ReplacementScan::GetFullPath(input);
+	if (!StringUtil::StartsWith(table_name, "https://docs.google.com/spreadsheets/d/")) {
+		return nullptr;
+	}
+	auto table_function = make_uniq<TableFunctionRef>();
+	vector<unique_ptr<ParsedExpression>> children;
+	children.push_back(make_uniq<ConstantExpression>(Value(table_name)));
+	table_function->function = make_uniq<FunctionExpression>("read_gsheet", std::move(children));
+
+	if (!FileSystem::HasGlob(table_name)) {
+		auto &fs = FileSystem::GetFileSystem(context);
+		table_function->alias = fs.ExtractBaseName(table_name);
+	}
+
+	return std::move(table_function);
+}
+
+
 
 static void LoadInternal(DatabaseInstance &instance) {
     // Initialize OpenSSL
@@ -63,6 +87,10 @@ static void LoadInternal(DatabaseInstance &instance) {
 
     // Register Secret functions
 	CreateGsheetSecretFunctions::Register(instance);
+
+    // Register replacement scan for read_gsheet
+    auto &config = DBConfig::GetConfig(instance);
+    config.replacement_scans.emplace_back(ReadSheetReplacement);
 }
 
 void GsheetsExtension::Load(DuckDB &db) {
