@@ -6,6 +6,7 @@ include:
   - privacy.md
   - ./README.md
   - oauth.html
+  - img/duckdb-gsheets.png
 
 exclude:
   - "**/*"
