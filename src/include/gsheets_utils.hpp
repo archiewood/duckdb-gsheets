@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <json.hpp>
+#include <random>
 
 using json = nlohmann::json;
 
@@ -25,5 +26,12 @@ struct SheetData {
 SheetData getSheetData(const json& j);
 
 json parseJson(const std::string& json_str);
+
+/**
+ * Generates a random string of specified length using alphanumeric characters.
+ * @param length The length of the random string to generate
+ * @return A random string of the specified length
+ */
+std::string generate_random_string(size_t length);
 
 } // namespace duckdb
