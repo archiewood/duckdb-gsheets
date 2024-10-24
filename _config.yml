@@ -6,11 +6,6 @@ include:
   - README.md
   - privacy.md
 
-exclude:
-  - "*"
-  - "**/*"
-  - "**/*.md"
-
 plugins:
   - jekyll-sitemap
 
@@ -20,8 +15,6 @@ minima:
 header_pages:
   - README.md
   - privacy.md
-
-permalink: pretty
 
 social_links:
 - { platform: github,  user_url: "https://github.com/archiewood/duckdb-gsheets" }
