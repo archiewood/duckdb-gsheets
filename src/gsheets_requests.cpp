@@ -45,7 +45,7 @@ namespace duckdb
             break;
         }
 
-        std::string request = method_str + " " + path + " HTTP/1.1\r\n";
+        std::string request = method_str + " " + path + " HTTP/1.0\r\n";
         request += "Host: " + host + "\r\n";
         request += "Authorization: Bearer " + token + "\r\n";
         request += "Connection: close\r\n";
@@ -80,7 +80,6 @@ namespace duckdb
         BIO_free_all(bio);
         SSL_CTX_free(ctx);
 
-        // Extract body from response
         // Extract body from response
         size_t body_start = response.find("\r\n\r\n");
         if (body_start != std::string::npos)
