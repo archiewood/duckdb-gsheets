@@ -3,8 +3,8 @@ remote_theme: jekyll/minima
 title: DuckDB GSheets
 
 include:
-  - README.md
   - privacy.md
+  - ./README.md
 
 exclude:
   - "**/*"
