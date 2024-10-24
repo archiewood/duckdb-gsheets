@@ -10,11 +10,14 @@ This extension, GSheets, allows you to read and write to Google Sheets using Duc
 -- Authenticate with Google Account in the browser (easiest)
 CREATE SECRET (TYPE gsheet, PROVIDER oauth);
 
--- OR create a secret with your Google API access token (see below guide)
+-- OR create a secret with your Google API access token (boring, see below guide)
 CREATE SECRET (TYPE gsheet, TOKEN '<your_token>');
 
 -- Read a sheet by full URL
 FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit');
+
+-- Read a sheet by full URL, implicitly
+FROM 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit';
 
 -- Read a sheet by sheet id
 FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8');
