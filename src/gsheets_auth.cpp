@@ -45,25 +45,13 @@ namespace duckdb
     }
 
     // TODO: Maybe this should be a KeyValueSecret
-    static unique_ptr<BaseSecret> CreateGsheetSecretFromAccessToken(ClientContext &context, CreateSecretInput &input)
-    {
+    static unique_ptr<BaseSecret> CreateGsheetSecretFromAccessToken(ClientContext &context, CreateSecretInput &input) {
         auto scope = input.scope;
 
         auto result = make_uniq<KeyValueSecret>(scope, input.type, input.provider, input.name);
 
-        std::string token;
-        if (input.options.find("use_oauth") != input.options.end() && input.options["use_oauth"] == "true")
-        {
-            // Initiate OAuth flow
-            token = InitiateOAuthFlow();
-        }
-        else
-        {
-            // Use the provided token
-            CopySecret("token", input, *result);
-        }
-
-        result->secret_map["token"] = token;
+        // Manage specific secret option
+        CopySecret("token", input, *result);
 
         // Redact sensible keys
         RedactCommonKeys(*result);
