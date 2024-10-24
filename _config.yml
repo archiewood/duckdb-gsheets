@@ -3,17 +3,10 @@ remote_theme: jekyll/minima
 title: DuckDB GSheets
 
 include:
-  - README.md
-  - PRIVACY.md
+  - *.md
 
 exclude:
-  - duckdb/**
-  - docs/**
-  - extension-ci-tools/**
-  - src/**
-  - test/**
-  - third_party/**
-  - vcpkg_installed/**
+  - **/*
 
 plugins:
   - jekyll-sitemap
@@ -23,7 +16,7 @@ minima:
 
 header_pages:
   - README.md
-  - PRIVACY.md
+  - privacy.md
 
 permalink: pretty
 
