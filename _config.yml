@@ -6,6 +6,9 @@ include:
   - README.md
   - privacy.md
 
+exclude:
+  - "**/*.md"
+
 plugins:
   - jekyll-sitemap
 
