@@ -3,7 +3,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/bio.h>
-
 namespace duckdb
 {
 
@@ -106,25 +105,8 @@ namespace duckdb
     std::string delete_sheet_data(const std::string &sheet_id, const std::string &token, const std::string &sheet_name)
     {
         std::string host = "sheets.googleapis.com";
-        std::string path = "/v4/spreadsheets/" + sheet_id + ":batchUpdate";
+        std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name + ":clear";
 
-        // TODO: Either pass in the sheetId (parsed from the URL)
-        // or build another method to ping the GSheets API to convert from sheet_name to sheetId in some way
-        std::string body = R"(
-            {
-                "requests": [
-                    {
-                    "updateCells": {
-                        "range": {
-                            "sheetId": 0
-                        },
-                        "fields": "userEnteredValue"
-                    }
-                    }
-                ]
-            }
-        )";
-
-        return perform_https_request(host, path, token, HttpMethod::POST, body);
+        return perform_https_request(host, path, token, HttpMethod::POST, "{}");
     }
 }
