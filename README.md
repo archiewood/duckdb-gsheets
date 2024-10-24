@@ -13,25 +13,25 @@ CREATE SECRET (TYPE gsheet, PROVIDER oauth);
 -- OR create a secret with your Google API access token (boring, see below guide)
 CREATE SECRET (TYPE gsheet, TOKEN '<your_token>');
 
--- Read a sheet by full URL
+-- Read a spreadsheet by full URL
 FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit');
 
--- Read a sheet by full URL, implicitly
+-- Read a spreadsheet by full URL, implicitly
 FROM 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit';
 
--- Read a sheet by sheet id
+-- Read a spreadsheet by spreadsheet id
 FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8');
 
--- Read a sheet with no header row
+-- Read a spreadsheet with no header row
 SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', headers=false);
 
 -- Read a sheet other than the first sheet
 SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', sheet='Sheet2');
 
--- Write a sheet from a table by sheetid
+-- Write a spreadsheet from a table by spreadsheet id
 COPY <table_name> TO '11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8' (FORMAT gsheet);
 
--- Write a sheet from a table by full URL
+-- Write a spreadsheet from a table by full URL
 COPY <table_name> TO 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?usp=sharing' (FORMAT gsheet);
 ```
 
