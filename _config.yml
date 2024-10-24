@@ -8,6 +8,8 @@ include:
 
 exclude:
   - "**/*"
+  - *.md
+
 
 plugins:
   - jekyll-sitemap
