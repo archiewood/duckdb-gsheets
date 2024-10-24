@@ -5,6 +5,7 @@ title: DuckDB GSheets
 include:
   - privacy.md
   - ./README.md
+  - oauth.html
 
 exclude:
   - "**/*"
