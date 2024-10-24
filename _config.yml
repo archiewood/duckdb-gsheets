@@ -2,11 +2,13 @@ remote_theme: jekyll/minima
 
 include:
   - README.md
+  - PRIVACY.md
 
 minima:
   skin: dark
 
 header_pages:
   - README.md
+  - PRIVACY.md
 social_links:
 - { platform: github,         user_url: "https://github.com/archiewood/duckdb-gsheets" }
