@@ -1,0 +1,54 @@
+<h1>DuckDB GSheets</h1>
+<h2 id="authStatus">Authorization</h2>
+<p id="authMessage"></p>
+
+<pre><code id="authCode" class="code-box"></code></pre>
+
+<script>
+    function getTokenFromFragment() {
+        const fragment = window.location.hash.substring(1);
+        const params = new URLSearchParams(fragment);
+        return params.get('access_token');
+    }
+
+
+    const authCode = getTokenFromFragment();
+    const authStatus = document.getElementById('authStatus');
+    const authMessage = document.getElementById('authMessage');
+    const authCodeElement = document.getElementById('authCode');
+
+    if (authCode) {
+        authStatus.textContent = 'Authorization successful!';
+        authMessage.textContent = 'Copy the token below and paste it into your DuckDB GSheets application:';
+        authCodeElement.textContent = authCode;
+    } else {
+        authStatus.textContent = 'Authorization failed';
+        authMessage.textContent = 'No token was received. Please try the authorization process again.';
+        authCodeElement.style.display = 'none';
+    }
+</script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    pre {
+        margin: 20px 0;
+        padding: 0;
+        max-width: 100%;
+    }
+    .code-box {
+        display: block;
+        user-select: all;
+        cursor: pointer;
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        box-sizing: border-box;
+        line-height: 1.5;
+    }
+</style>
