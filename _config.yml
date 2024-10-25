@@ -9,7 +9,6 @@ include:
   - img/duckdb-gsheets.png
 
 exclude:
-  - "**/*"
   - "**/*.md"
 
 plugins:
