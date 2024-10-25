@@ -6,6 +6,37 @@
 
 namespace duckdb
 {
+    struct GSheetCopyGlobalState : public GlobalFunctionData
+    {
+        explicit GSheetCopyGlobalState(ClientContext &context, const string &sheet_id, const string &token, const string &sheet_name)
+            : sheet_id(sheet_id), token(token), sheet_name(sheet_name)
+        {
+        }
+
+    public:
+        string sheet_id;
+        string token;
+        string sheet_name;
+    };
+
+    struct GSheetWriteOptions
+    {
+        vector<string> name_list;
+    };
+
+    struct GSheetWriteBindData : public TableFunctionData
+    {
+        vector<string> files;
+        GSheetWriteOptions options;
+        vector<LogicalType> sql_types;
+
+        GSheetWriteBindData(string file_path, vector<LogicalType> sql_types, vector<string> names)
+            : sql_types(std::move(sql_types))
+        {
+            files.push_back(std::move(file_path));
+            options.name_list = std::move(names);
+        }
+    };
 
     class GSheetCopyFunction : public CopyFunction
     {

@@ -21,26 +21,12 @@ namespace duckdb
         copy_to_sink = GSheetWriteSink;
     }
 
-    struct GSheetCopyGlobalState : public GlobalFunctionData
-    {
-        explicit GSheetCopyGlobalState(ClientContext &context, const string &sheet_id, const string &token, const string &sheet_name)
-            : sheet_id(sheet_id), token(token), sheet_name(sheet_name)
-        {
-        }
-
-    public:
-        string sheet_id;
-        string token;
-        string sheet_name;
-    };
-
-    struct GSheetWriteBindData : public TableFunctionData
-    {
-    };
 
     unique_ptr<FunctionData> GSheetCopyFunction::GSheetWriteBind(ClientContext &context, CopyFunctionBindInput &input, const vector<string> &names, const vector<LogicalType> &sql_types)
     {
-        return make_uniq<GSheetWriteBindData>();
+        string file_path = input.info.file_path;
+
+        return make_uniq<GSheetWriteBindData>(file_path, sql_types, names);
     }
 
     unique_ptr<GlobalFunctionData> GSheetCopyFunction::GSheetWriteInitializeGlobal(ClientContext &context, FunctionData &bind_data, const string &file_path)
@@ -96,9 +82,11 @@ namespace duckdb
         sheet_data["range"] = "Sheet1";
         sheet_data["majorDimension"] = "ROWS";
         
-        // TODO: Add column headers
+        vector<string> headers = bind_data_p.Cast<GSheetWriteBindData>().options.name_list;        
 
         vector<vector<string>> values;
+        values.push_back(headers);
+
         for (idx_t r = 0; r < input.size(); r++)
         {
             vector<string> row;
