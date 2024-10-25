@@ -10,9 +10,9 @@ namespace duckdb {
 
 using json = nlohmann::json;
 
-ReadSheetBindData::ReadSheetBindData(string sheet_id, string token, bool header, string sheet_name) 
-    : sheet_id(sheet_id), token(token), finished(false), row_index(0), header(header), sheet_name(sheet_name) {
-    response = fetch_sheet_data(sheet_id, token, sheet_name, HttpMethod::GET);
+ReadSheetBindData::ReadSheetBindData(string spreadsheet_id, string token, bool header, string sheet_name) 
+    : spreadsheet_id(spreadsheet_id), token(token), finished(false), row_index(0), header(header), sheet_name(sheet_name) {
+    response = fetch_sheet_data(spreadsheet_id, token, sheet_name, HttpMethod::GET);
 }
 
 
@@ -96,8 +96,8 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
         }
     }
 
-    // Extract the sheet ID from the input (URL or ID)
-    std::string sheet_id = extract_sheet_id(sheet_input);
+    // Extract the spreadsheet ID from the input (URL or ID)
+    std::string spreadsheet_id = extract_spreadsheet_id(sheet_input);
 
     // Use the SecretManager to get the token
     auto &secret_manager = SecretManager::Get(context);
@@ -125,7 +125,7 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
 
     std::string token = token_value.ToString();
 
-    auto bind_data = make_uniq<ReadSheetBindData>(sheet_id, token, header, sheet);
+    auto bind_data = make_uniq<ReadSheetBindData>(spreadsheet_id, token, header, sheet);
 
     json cleanJson = parseJson(bind_data->response);
     SheetData sheet_data = getSheetData(cleanJson);

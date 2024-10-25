@@ -55,14 +55,25 @@ namespace duckdb
         }
 
         std::string token = token_value.ToString();
+        std::string spreadsheet_id = extract_spreadsheet_id(file_path);
         std::string sheet_id = extract_sheet_id(file_path);
         std::string sheet_name = "Sheet1"; // TODO: make this configurable
 
+        std::string metadata_response = get_spreadsheet_metadata(spreadsheet_id, token);
+        json metadata = parseJson(metadata_response);
+
+        for (const auto& sheet : metadata["sheets"]) {
+            if (sheet["properties"]["sheetId"].get<int>() == std::stoi(sheet_id)) {
+                sheet_name = sheet["properties"]["title"].get<std::string>();
+                break;
+            }
+        }
+
         // If writing, clear out the entire sheet first.
         // Do this here in the initialization so that it only happens once
-        std::string response = delete_sheet_data(sheet_id, token, sheet_name);
+        std::string response = delete_sheet_data(spreadsheet_id, token, sheet_name);
 
-        return make_uniq<GSheetCopyGlobalState>(context, sheet_id, token, sheet_name);
+        return make_uniq<GSheetCopyGlobalState>(context, spreadsheet_id, token, sheet_name);
     }
 
     unique_ptr<LocalFunctionData> GSheetCopyFunction::GSheetWriteInitializeLocal(ExecutionContext &context, FunctionData &bind_data_p)
@@ -75,11 +86,26 @@ namespace duckdb
         input.Flatten();
         auto &gstate = gstate_p.Cast<GSheetCopyGlobalState>();
 
+        std::string sheet_id = extract_sheet_id(bind_data_p.Cast<GSheetWriteBindData>().files[0]);
+
+        std::string metadata_response = get_spreadsheet_metadata(gstate.spreadsheet_id, gstate.token);
+        json metadata = parseJson(metadata_response);
+
+        std::string sheet_name = "Sheet1";
+
+        for (const auto& sheet : metadata["sheets"]) {
+            if (sheet["properties"]["sheetId"].get<int>() == std::stoi(sheet_id)) {
+                sheet_name = sheet["properties"]["title"].get<std::string>();
+                break;
+            }
+        }
+
+
         // Create object ready to write to Google Sheet
         json sheet_data;
 
         // TODO: make this configurable
-        sheet_data["range"] = "Sheet1";
+        sheet_data["range"] = sheet_name;
         sheet_data["majorDimension"] = "ROWS";
         
         vector<string> headers = bind_data_p.Cast<GSheetWriteBindData>().options.name_list;        
@@ -123,7 +149,7 @@ namespace duckdb
 
         // Make the API call to write data to the Google Sheet
         // Today, this is only append.
-        std::string response = fetch_sheet_data(gstate.sheet_id, gstate.token, gstate.sheet_name, HttpMethod::POST, request_body);
+        std::string response = fetch_sheet_data(gstate.spreadsheet_id, gstate.token, sheet_name, HttpMethod::POST, request_body);
 
         // Check for errors in the response
         json response_json = parseJson(response);

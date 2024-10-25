@@ -15,6 +15,14 @@ namespace duckdb {
  * @return The extracted sheet ID
  * @throws InvalidInputException if the input is neither a valid URL nor a sheet ID
  */
+std::string extract_spreadsheet_id(const std::string& input);
+
+
+/**
+ * Extracts the sheet ID from a Google Sheets URL
+ * @param input A Google Sheets URL
+ * @return The extracted sheet ID
+ */
 std::string extract_sheet_id(const std::string& input);
 
 struct SheetData {

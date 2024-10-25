@@ -89,10 +89,10 @@ namespace duckdb
         return response;
     }
 
-    std::string fetch_sheet_data(const std::string &sheet_id, const std::string &token, const std::string &sheet_name, HttpMethod method, const std::string &body)
+    std::string fetch_sheet_data(const std::string &spreadsheet_id, const std::string &token, const std::string &sheet_name, HttpMethod method, const std::string &body)
     {
         std::string host = "sheets.googleapis.com";
-        std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name;
+        std::string path = "/v4/spreadsheets/" + spreadsheet_id + "/values/" + sheet_name;
 
         if (method == HttpMethod::POST) {
             path += ":append";
@@ -102,11 +102,18 @@ namespace duckdb
         return perform_https_request(host, path, token, method, body);
     }
 
-    std::string delete_sheet_data(const std::string &sheet_id, const std::string &token, const std::string &sheet_name)
+    std::string delete_sheet_data(const std::string &spreadsheet_id, const std::string &token, const std::string &sheet_name)
     {
         std::string host = "sheets.googleapis.com";
-        std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name + ":clear";
+        std::string path = "/v4/spreadsheets/" + spreadsheet_id + "/values/" + sheet_name + ":clear";
 
         return perform_https_request(host, path, token, HttpMethod::POST, "{}");
+    }
+
+    std::string get_spreadsheet_metadata(const std::string &spreadsheet_id, const std::string &token)
+    {
+        std::string host = "sheets.googleapis.com";
+        std::string path = "/v4/spreadsheets/" + spreadsheet_id + "?&fields=sheets.properties";
+        return perform_https_request(host, path, token, HttpMethod::GET, "");
     }
 }
