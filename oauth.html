@@ -10,18 +10,18 @@
         return urlParams.get(name);
     }
 
-    const authCode = getParameterByName('code');
+    const authCode = getParameterByName('access_token');
     const authStatus = document.getElementById('authStatus');
     const authMessage = document.getElementById('authMessage');
     const authCodeElement = document.getElementById('authCode');
 
     if (authCode) {
         authStatus.textContent = 'Authorization successful!';
-        authMessage.textContent = 'Copy the code below and paste it into your DuckDB GSheets application:';
+        authMessage.textContent = 'Copy the token below and paste it into your DuckDB GSheets application:';
         authCodeElement.textContent = authCode;
     } else {
         authStatus.textContent = 'Authorization failed';
-        authMessage.textContent = 'No authorization code was found. Please try the authorization process again.';
+        authMessage.textContent = 'No token was received. Please try the authorization process again.';
         authCodeElement.style.display = 'none';
     }
 </script>
