@@ -3,7 +3,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/bio.h>
-
 namespace duckdb
 {
 
@@ -101,5 +100,13 @@ namespace duckdb
         }
 
         return perform_https_request(host, path, token, method, body);
+    }
+
+    std::string delete_sheet_data(const std::string &sheet_id, const std::string &token, const std::string &sheet_name)
+    {
+        std::string host = "sheets.googleapis.com";
+        std::string path = "/v4/spreadsheets/" + sheet_id + "/values/" + sheet_name + ":clear";
+
+        return perform_https_request(host, path, token, HttpMethod::POST, "{}");
     }
 }
