@@ -14,7 +14,7 @@
 - [x] implicit read_gsheet when it sees a gsheets url
 
 ## Auth Providers
-- [x] OAuth
+- [x] OAuth (subject to approval)
 - [x] Token
 - [ ] Service Account keyfile
 
