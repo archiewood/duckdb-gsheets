@@ -7,7 +7,7 @@ This extension, GSheets, allows you to read and write to Google Sheets using Duc
 ## Usage 
 
 ```sql
--- Authenticate with Google Account in the browser (easiest, note that Google has not verified the DuckDB GSheets OAuth app yet so it will throw a gnarly warning, and you need to click "Proceed (unsafe)" in the browser)
+-- Authenticate with Google Account in the browser (easiest)
 CREATE SECRET (TYPE gsheet, PROVIDER oauth);
 
 -- OR create a secret with your Google API access token (boring, see below guide)
