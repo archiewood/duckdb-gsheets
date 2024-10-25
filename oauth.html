@@ -5,12 +5,13 @@
 <pre><code id="authCode" class="code-box"></code></pre>
 
 <script>
-    function getParameterByName(name) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
+    function getTokenFromFragment() {
+        const fragment = window.location.hash.substring(1);
+        const params = new URLSearchParams(fragment);
+        return params.get('access_token');
     }
 
-    const authCode = getParameterByName('code');
+    const authCode = getTokenFromFragment();
     const authStatus = document.getElementById('authStatus');
     const authMessage = document.getElementById('authMessage');
     const authCodeElement = document.getElementById('authCode');
