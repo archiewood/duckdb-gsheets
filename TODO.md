@@ -1,7 +1,7 @@
 # TODO
 
 ## Copy to
-- [ ] header
+- [x] header
 - [ ] sheet
 - [ ] types
 - [ ] implicit copy to when it sees a gsheets url
