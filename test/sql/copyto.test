@@ -1,0 +1,35 @@
+# name: test/sql/copyto.test
+# description: test COPY TO function
+# group: [gsheets]
+
+require-env TOKEN
+
+require gsheets
+
+# Create a secret NB must substitute a token, do not commit!
+statement ok
+create secret test_secret (type gsheet, token '${TOKEN}');
+
+# Create a table to copy to Google Sheet
+statement ok
+create table spreadsheets as 
+select 'Microsoft' as company, 'Excel' as product, 1985 as year_founded
+union all
+select 'Google', 'Google Sheets', 2006
+union all
+select 'Apple', 'Numbers', 1984
+union all
+select 'LibreOffice', 'Calc', 2000;
+
+# Copy the table to Google Sheet
+statement ok
+copy spreadsheets to 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit#gid=0' (format gsheet);
+
+# Read the table from Google Sheet
+query III
+from read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit#gid=0');
+----
+Microsoft	Excel	1985
+Google	Google Sheets	2006
+Apple	Numbers	1984
+LibreOffice	Calc	2000
