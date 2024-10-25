@@ -32,15 +32,23 @@
     body {
         font-family: Arial, sans-serif;
     }
+    pre {
+        margin: 20px 0;
+        padding: 0;
+        max-width: 100%;
+    }
     .code-box {
+        display: block;
         user-select: all;
         cursor: pointer;
         background-color: #f0f0f0;
         padding: 10px;
         border-radius: 5px;
         border: 1px solid #ccc;
-    }
-    pre {
-        margin: 20px 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        box-sizing: border-box;
+        line-height: 1.5;
     }
 </style>
