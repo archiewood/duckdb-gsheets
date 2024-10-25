@@ -2,7 +2,13 @@
 
 # <img src="img/duckdb-gsheets.png" alt="DuckDB GSheets" style="height: 1em;"/> DuckDB GSheets 
 
-This extension, GSheets, allows you to read and write to Google Sheets using DuckDB.
+A DuckDB extension that allows you to read and write Google Sheets.
+
+## Installing
+
+This extension is not yet published and must be [built from source](#building).
+
+The source code is hosted at https://github.com/archiewood/duckdb-gsheets
 
 ## Usage 
 
