@@ -10,3 +10,4 @@ vcpkg_installed
 token.txt
 .env
 _site/
+credentials.json
