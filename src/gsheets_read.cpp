@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 ReadSheetBindData::ReadSheetBindData(string spreadsheet_id, string token, bool header, string sheet_name) 
     : spreadsheet_id(spreadsheet_id), token(token), finished(false), row_index(0), header(header), sheet_name(sheet_name) {
-    response = fetch_sheet_data(spreadsheet_id, token, sheet_name, HttpMethod::GET);
+    response = call_sheets_api(spreadsheet_id, token, sheet_name, HttpMethod::GET);
 }
 
 
@@ -81,20 +81,7 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
     
     // Default values
     bool header = true;
-    string sheet = "Sheet1";
-
-    // Parse named parameters
-    for (auto &kv : input.named_parameters) {
-        if (kv.first == "header") {
-            try {
-                header = kv.second.GetValue<bool>();
-            } catch (const std::exception& e) {
-                throw InvalidInputException("Invalid value for 'header' parameter. Expected a boolean value.");
-            }
-        } else if (kv.first == "sheet") {
-            sheet = kv.second.GetValue<string>();
-        }
-    }
+    string sheet_name = "Sheet1";
 
     // Extract the spreadsheet ID from the input (URL or ID)
     std::string spreadsheet_id = extract_spreadsheet_id(sheet_input);
@@ -125,7 +112,26 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
 
     std::string token = token_value.ToString();
 
-    auto bind_data = make_uniq<ReadSheetBindData>(spreadsheet_id, token, header, sheet);
+    // Get sheet name from URL
+    std::string sheet_id = extract_sheet_id(sheet_input);
+    sheet_name = get_sheet_name_from_id(spreadsheet_id, sheet_id, token);
+    std::string encoded_sheet_name = url_encode(sheet_name);
+
+    // Parse named parameters
+    for (auto &kv : input.named_parameters) {
+        if (kv.first == "header") {
+            try {
+                header = kv.second.GetValue<bool>();
+            } catch (const std::exception& e) {
+                throw InvalidInputException("Invalid value for 'header' parameter. Expected a boolean value.");
+            }
+        } else if (kv.first == "sheet") {
+            sheet_name = kv.second.GetValue<string>();
+        }
+    }
+
+    
+    auto bind_data = make_uniq<ReadSheetBindData>(spreadsheet_id, token, header, encoded_sheet_name);
 
     json cleanJson = parseJson(bind_data->response);
     SheetData sheet_data = getSheetData(cleanJson);

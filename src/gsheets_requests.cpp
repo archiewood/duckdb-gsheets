@@ -62,6 +62,8 @@ namespace duckdb
             request += body;
         }
 
+        
+
         if (BIO_write(bio, request.c_str(), request.length()) <= 0)
         {
             BIO_free_all(bio);
@@ -89,7 +91,7 @@ namespace duckdb
         return response;
     }
 
-    std::string fetch_sheet_data(const std::string &spreadsheet_id, const std::string &token, const std::string &sheet_name, HttpMethod method, const std::string &body)
+    std::string call_sheets_api(const std::string &spreadsheet_id, const std::string &token, const std::string &sheet_name, HttpMethod method, const std::string &body)
     {
         std::string host = "sheets.googleapis.com";
         std::string path = "/v4/spreadsheets/" + spreadsheet_id + "/values/" + sheet_name;

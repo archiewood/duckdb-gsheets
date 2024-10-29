@@ -1,8 +1,10 @@
 #include "gsheets_utils.hpp"
+#include "gsheets_requests.hpp"
 #include "duckdb/common/exception.hpp"
 #include <regex>
 #include <json.hpp>
 #include <iostream>
+#include <sstream>
 
 using json = nlohmann::json;
 namespace duckdb {
@@ -27,14 +29,36 @@ std::string extract_spreadsheet_id(const std::string& input) {
 }
 
 std::string extract_sheet_id(const std::string& input) {
-    if (input.find("docs.google.com/spreadsheets/d/") != std::string::npos && input.find("edit?gid=") != std::string::npos) {
+    if (input.find("docs.google.com/spreadsheets/d/") != std::string::npos && input.find("gid=") != std::string::npos) {
         std::regex sheet_id_regex("gid=([0-9]+)");
         std::smatch match;
         if (std::regex_search(input, match, sheet_id_regex) && match.size() > 1) {
             return match.str(1);
         }
     }
-    throw duckdb::InvalidInputException("Invalid Google Sheets URL or ID");
+    return "0";
+}
+
+std::string get_sheet_name_from_id(const std::string& spreadsheet_id, const std::string& sheet_id, const std::string& token) {
+    std::string metadata_response = get_spreadsheet_metadata(spreadsheet_id, token);
+    json metadata = parseJson(metadata_response);
+    for (const auto& sheet : metadata["sheets"]) {
+        if (sheet["properties"]["sheetId"].get<int>() == std::stoi(sheet_id)) {
+            return sheet["properties"]["title"].get<std::string>();
+        }
+    }
+    throw duckdb::InvalidInputException("Sheet with ID %s not found", sheet_id);
+}
+
+std::string get_sheet_id_from_name(const std::string& spreadsheet_id, const std::string& sheet_name, const std::string& token) {
+    std::string metadata_response = get_spreadsheet_metadata(spreadsheet_id, token);
+    json metadata = parseJson(metadata_response);
+    for (const auto& sheet : metadata["sheets"]) {
+        if (sheet["properties"]["title"].get<std::string>() == sheet_name) {
+            return sheet["properties"]["sheetId"].get<std::string>();
+        }
+    }
+    throw duckdb::InvalidInputException("Sheet with name %s not found", sheet_name);
 }
 
 json parseJson(const std::string& json_str) {
@@ -97,6 +121,20 @@ std::string generate_random_string(size_t length) {
         result.push_back(charset[distribution(generator)]);
     }
     return result;
+}
+
+std::string url_encode(const std::string& str) {
+    std::string encoded;
+    for (char c : str) {
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            encoded += c;
+        } else {
+            std::stringstream ss;
+            ss << std::hex << std::uppercase << static_cast<int>(static_cast<unsigned char>(c));
+            encoded += '%' + ss.str();
+        }
+    }
+    return encoded;
 }
 
 } // namespace duckdb
