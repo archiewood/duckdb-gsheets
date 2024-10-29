@@ -8,7 +8,7 @@
 namespace duckdb {
 
 struct ReadSheetBindData : public TableFunctionData {
-    string sheet_id;
+    string spreadsheet_id;
     string token;
     bool finished;
     idx_t row_index;
@@ -16,7 +16,7 @@ struct ReadSheetBindData : public TableFunctionData {
     bool header;
     string sheet_name;
 
-    ReadSheetBindData(string sheet_id, string token, bool header, string sheet_name);
+    ReadSheetBindData(string spreadsheet_id, string token, bool header, string sheet_name);
 };
 
 void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output);

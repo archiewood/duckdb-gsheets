@@ -8,13 +8,13 @@ namespace duckdb
 {
     struct GSheetCopyGlobalState : public GlobalFunctionData
     {
-        explicit GSheetCopyGlobalState(ClientContext &context, const string &sheet_id, const string &token, const string &sheet_name)
-            : sheet_id(sheet_id), token(token), sheet_name(sheet_name)
+        explicit GSheetCopyGlobalState(ClientContext &context, const string &spreadsheet_id, const string &token, const string &sheet_name)
+            : spreadsheet_id(spreadsheet_id), token(token), sheet_name(sheet_name)
         {
         }
 
     public:
-        string sheet_id;
+        string spreadsheet_id;
         string token;
         string sheet_name;
     };

@@ -1,4 +1,4 @@
-# name: test/sql/copyto.test
+# name: test/sql/copy_to.test
 # description: test COPY TO function
 # group: [gsheets]
 
@@ -23,11 +23,11 @@ select 'LibreOffice', 'Calc', 2000;
 
 # Copy the table to Google Sheet
 statement ok
-copy spreadsheets to 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit#gid=0' (format gsheet);
+copy spreadsheets to 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1295634987#gid=1295634987' (format gsheet);
 
 # Read the table from Google Sheet
 query III
-from read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit#gid=0');
+from read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1295634987#gid=1295634987');
 ----
 Microsoft	Excel	1985
 Google	Google Sheets	2006
