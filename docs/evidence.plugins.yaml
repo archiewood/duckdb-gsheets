@@ -1,0 +1,10 @@
+
+components:
+  # This loads all of evidence's core charts and UI components
+  # You probably don't want to edit this dependency unless you know what you are doing
+  "@evidence-dev/core-components": {}
+
+datasources:
+  # You can add additional datasources here by adding npm packages. 
+  # Make to also add them to `package.json`.
+  "@evidence-dev/duckdb": { }

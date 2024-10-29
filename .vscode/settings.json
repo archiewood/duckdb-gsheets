@@ -74,5 +74,12 @@
         "valarray": "cpp",
         "variant": "cpp",
         "algorithm": "cpp"
-    }
+    },
+    "editor.acceptSuggestionOnEnter": true,
+    "editor.quickSuggestions": {
+        "other": false,
+        "comments": false,
+        "strings": false
+    },
+    "editor.quickSuggestionsDelay": 300
 }
