@@ -3,7 +3,7 @@ sidebar_link: false
 ---
 
 <script>
-    let authCode;
+    let authCode = 'pending';
     onMount(() => {
         authCode = new URLSearchParams($page.url.hash.substring(1)).get('access_token')
     });
@@ -12,7 +12,11 @@ sidebar_link: false
 
 # DuckDB GSheets
 
-{#if authCode}
+{#if authCode === 'pending'}
+
+## Authorization Pending
+
+{:else if authCode}
 
 ## Authorization Successful
 
@@ -21,7 +25,6 @@ Copy the token below and paste it into your DuckDB GSheets application:
 <pre><code class="code-box">{authCode}</code></pre>
 
 {:else}
-
 
 ## Authorization Failed
 
