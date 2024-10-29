@@ -110,8 +110,26 @@ namespace duckdb
                     case LogicalTypeId::INTEGER:
                         row.push_back(to_string(FlatVector::GetData<int32_t>(col)[r]));
                         break;
+                    case LogicalTypeId::TINYINT:
+                        row.push_back(to_string(FlatVector::GetData<int8_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::SMALLINT:
+                        row.push_back(to_string(FlatVector::GetData<int16_t>(col)[r]));
+                        break;
                     case LogicalTypeId::BIGINT:
                         row.push_back(to_string(FlatVector::GetData<int64_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::UTINYINT:
+                        row.push_back(to_string(FlatVector::GetData<uint8_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::USMALLINT:
+                        row.push_back(to_string(FlatVector::GetData<uint16_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::UINTEGER:
+                        row.push_back(to_string(FlatVector::GetData<uint32_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::UBIGINT:
+                        row.push_back(to_string(FlatVector::GetData<uint64_t>(col)[r]));
                         break;
                     case LogicalTypeId::DOUBLE:
                         row.push_back(to_string(FlatVector::GetData<double>(col)[r]));
@@ -120,7 +138,7 @@ namespace duckdb
                         row.push_back(FlatVector::GetData<bool>(col)[r] ? "TRUE" : "FALSE");
                         break;
                     default:
-                        row.push_back("Type not implemented");
+                        row.push_back("Type " + col.GetType().ToString() + " not implemented");
                         break;
                 }
             }
