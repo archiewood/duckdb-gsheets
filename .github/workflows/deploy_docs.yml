@@ -23,6 +23,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Change directory
+        run: cd docs
+
       - name: Install dependencies
         run: npm install
 
