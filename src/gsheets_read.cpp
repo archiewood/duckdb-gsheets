@@ -115,7 +115,6 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
     // Get sheet name from URL
     std::string sheet_id = extract_sheet_id(sheet_input);
     sheet_name = get_sheet_name_from_id(spreadsheet_id, sheet_id, token);
-    std::string encoded_sheet_name = url_encode(sheet_name);
 
     // Parse named parameters
     for (auto &kv : input.named_parameters) {
@@ -130,6 +129,7 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
         }
     }
 
+    std::string encoded_sheet_name = url_encode(sheet_name);
     
     auto bind_data = make_uniq<ReadSheetBindData>(spreadsheet_id, token, header, encoded_sheet_name);
 
