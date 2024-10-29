@@ -1,5 +1,5 @@
-# name: test/sql/gsheets.test
-# description: test gsheets extension
+# name: test/sql/read_gsheet.test
+# description: test read_gsheet() function
 # group: [gsheets]
 
 require-env TOKEN

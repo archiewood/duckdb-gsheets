@@ -2,7 +2,7 @@
 
 ## Copy to
 - [x] header
-- [ ] sheet
+- [x] sheet
 - [ ] types
 - [ ] implicit copy to when it sees a gsheets url
 - [x] warn when more than 2048 rows
@@ -19,5 +19,5 @@
 - [ ] Service Account keyfile
 
 ## Tests
-- Tests for read_gsheet()
-- Tests for copy to
+- [x] Tests for read_gsheet()
+- [x] Tests for copy to
