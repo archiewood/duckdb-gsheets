@@ -5,6 +5,7 @@
 #include "duckdb/main/secret/secret_manager.hpp"
 #include "gsheets_requests.hpp"
 #include <json.hpp>
+#include <algorithm>
 
 namespace duckdb {
 
@@ -40,9 +41,11 @@ void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataC
             const string& value = first_data_row[col];
             if (value == "true" || value == "false") {
                 column_types[col] = LogicalType::BOOLEAN;
+            } else if (value.find_first_not_of("0123456789") == string::npos) {
+                column_types[col] = LogicalType::INTEGER;
             } else if (value.find_first_not_of("0123456789.+-eE") == string::npos) {
                 column_types[col] = LogicalType::DOUBLE;
-            }
+            } 
         }
     }
 
@@ -50,10 +53,19 @@ void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataC
         const auto& row = sheet_data.values[i];
         for (idx_t col = 0; col < column_count; col++) {
             if (col < row.size()) {
-                const string& value = row[col];
+                string value = row[col];
+                
+                // Remove commas from the value for numeric types
+                if (column_types[col].id() != LogicalTypeId::VARCHAR) {
+                    value.erase(std::remove(value.begin(), value.end(), ','), value.end());
+                }
+
                 switch (column_types[col].id()) {
                     case LogicalTypeId::BOOLEAN:
                         output.SetValue(col, row_count, Value::BOOLEAN(value == "true"));
+                        break;
+                    case LogicalTypeId::INTEGER:
+                        output.SetValue(col, row_count, Value::INTEGER(std::stoi(value)));
                         break;
                     case LogicalTypeId::DOUBLE:
                         output.SetValue(col, row_count, Value::DOUBLE(std::stod(value)));
@@ -147,6 +159,8 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
                 const string& value = first_data_row[i];
                 if (value == "true" || value == "false") {
                     return_types.push_back(LogicalType::BOOLEAN);
+                } else if (value.find_first_not_of("0123456789") == string::npos) {
+                    return_types.push_back(LogicalType::INTEGER);
                 } else if (value.find_first_not_of("0123456789.+-eE") == string::npos) {
                     return_types.push_back(LogicalType::DOUBLE);
                 } else {

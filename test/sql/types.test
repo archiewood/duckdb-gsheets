@@ -1,0 +1,22 @@
+# name: test/sql/types.test
+# description: test types
+# group: [gsheets]
+
+require-env TOKEN
+
+require gsheets
+
+# Create a secret NB must substitute a token, do not commit!
+statement ok
+create secret test_secret (type gsheet, token '${TOKEN}');
+
+# Read a Google Sheet with different types
+query IIIIII
+from 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=12288084#gid=12288084';
+----
+Text	Integers	Decimal Precision	Boolean	Date/Time	Error
+SELECT * FROM users;	1	0.0	TRUE	9/26/2016 0:00:00	#DIV/0!
+"🦆"	456789876	-6152000.452	TRUE	9/26/2017 0:00:00	#NAME?
+DROP TABLE users;	123	1.123	FALSE	9/26/2017 12:00:00	#N/A
+"SELECT * FROM tables WHERE name = 'DuckDB'"	-129812490	119812123.0	FALSE	9/26/0100 0:00:00	#DIV/0!
+Hello DuckDB	56	0.0	FALSE	10/28/2024 9:17:23	#REF!

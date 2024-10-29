@@ -98,7 +98,7 @@ namespace duckdb
 
         if (method == HttpMethod::POST) {
             path += ":append";
-            path += "?valueInputOption=RAW";
+            path += "?valueInputOption=USER_ENTERED";
         }
 
         return perform_https_request(host, path, token, method, body);
