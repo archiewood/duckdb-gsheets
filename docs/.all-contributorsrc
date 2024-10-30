@@ -1,0 +1,25 @@
+{
+  "projectName": "duckdb_gsheets",
+  "projectOwner": "evidence-dev",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "pages/index.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "archiewood",
+      "name": "Archie Sarre Wood",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58074498?v=4",
+      "profile": "https://github.com/archiewood",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}
