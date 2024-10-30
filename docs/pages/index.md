@@ -17,9 +17,12 @@ A DuckDB extension that allows you to read and write Google Sheets using SQL.
 
 ## Install
 
-This extension is not yet published and must be [built from source](/development#building).
+```sql
+INSTALL gsheets FROM community;
+LOAD gsheets;
+```
 
-The source code is hosted at [https://github.com/evidence-dev/duckdb_gsheets](https://github.com/evidence-dev/duckdb_gsheets)
+The latest version of DuckDB (currently 1.1.2) is required.
 
 ## Usage 
 
