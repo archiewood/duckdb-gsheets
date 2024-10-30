@@ -8,6 +8,7 @@
   ],
   "imageSize": 100,
   "commit": true,
+  "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" style=\"border-radius: 50%;\" alt=\"\"/><br /><b><%= contributor.name %></b><br/>(<%= contributor.contributions %>)</a>",
   "commitConvention": "angular",
   "contributors": [
     {
@@ -16,7 +17,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/58074498?v=4",
       "profile": "https://github.com/archiewood",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
