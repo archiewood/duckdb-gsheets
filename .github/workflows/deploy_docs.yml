@@ -38,7 +38,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: https://evidence-dev.github.io/duckdb-gsheets
+      url: https://evidence-dev.github.io/duckdb_gsheets
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
