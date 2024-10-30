@@ -27,6 +27,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "sahilng",
+      "name": "Sahil Gupta",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1976560?v=4",
+      "profile": "https://github.com/sahilng",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

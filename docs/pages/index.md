@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <h1 class="markdown flex items-center gap-2"><img src="duckdb-gsheets.png" style="height: 1em;"/>DuckDB GSheets</h1>
 
@@ -114,6 +114,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/archiewood"><img src="https://avatars.githubusercontent.com/u/58074498?v=4?s=100" width="100px;" alt="Archie Sarre Wood"/><br /><sub><b>Archie Sarre Wood</b></sub></a><br /><a href="https://github.com/evidence-dev/duckdb_gsheets/commits?author=archiewood" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Alex-Monahan"><img src="https://avatars.githubusercontent.com/u/52226177?v=4?s=100" width="100px;" alt="Alex-Monahan"/><br /><sub><b>Alex-Monahan</b></sub></a><br /><a href="https://github.com/evidence-dev/duckdb_gsheets/commits?author=Alex-Monahan" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sahilng"><img src="https://avatars.githubusercontent.com/u/1976560?v=4?s=100" width="100px;" alt="Sahil Gupta"/><br /><sub><b>Sahil Gupta</b></sub></a><br /><a href="https://github.com/evidence-dev/duckdb_gsheets/commits?author=sahilng" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
