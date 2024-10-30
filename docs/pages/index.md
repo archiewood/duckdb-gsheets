@@ -1,5 +1,9 @@
+---
+title: DuckDB GSheets
+hide_title: true
+---
 
-<h1 class="markdown flex items-center gap-2"><img src="duckdb-gsheets.png" style="height: 1em;"/>DuckDB GSheets</h1>
+<h1 class="markdown flex items-center gap-2"><img src="duckdb-gsheets.png" style="height: 1em;"/> DuckDB GSheets</h1>
 
 <Alert status="warning">
 
