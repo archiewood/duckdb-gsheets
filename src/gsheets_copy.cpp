@@ -96,6 +96,40 @@ namespace duckdb
 
         vector<vector<string>> values;
         values.push_back(headers);
+        // TODO: This is a bit of a hack to get the types to work.
+        // BOOLEAN
+        // TINYINT
+        // SMALLINT
+        // INTEGER
+        // BIGINT
+        // DATE
+        // TIME
+        // TIMESTAMP_SEC
+        // TIMESTAMP_MS
+        // TIMESTAMP
+        // TIMESTAMP_NS
+        // DECIMAL
+        // FLOAT
+        // DOUBLE
+        // CHAR
+        // VARCHAR
+        // BLOB
+        // INTERVAL
+        // UTINYINT
+        // USMALLINT
+        // UINTEGER
+        // UBIGINT
+        // TIMESTAMP_TZ
+        // TIME_TZ
+        // BIT
+        // STRING_LITERAL
+        // INTEGER_LITERAL
+        // VARINT
+        // UHUGEINT
+        // HUGEINT
+        // POINTER
+        // VALIDITY
+        // UUID
 
         for (idx_t r = 0; r < input.size(); r++)
         {
@@ -136,6 +170,21 @@ namespace duckdb
                         break;
                     case LogicalTypeId::BOOLEAN:
                         row.push_back(FlatVector::GetData<bool>(col)[r] ? "TRUE" : "FALSE");
+                        break;
+                    case LogicalTypeId::TIMESTAMP:
+                        row.push_back(Timestamp::ToString(FlatVector::GetData<timestamp_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::TIMESTAMP_SEC:
+                        row.push_back(Timestamp::ToString(FlatVector::GetData<timestamp_sec_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::TIMESTAMP_MS:
+                        row.push_back(Timestamp::ToString(FlatVector::GetData<timestamp_ms_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::TIMESTAMP_NS:
+                        row.push_back(Timestamp::ToString(FlatVector::GetData<timestamp_ns_t>(col)[r]));
+                        break;
+                    case LogicalTypeId::TIMESTAMP_TZ:
+                        row.push_back(Timestamp::ToString(FlatVector::GetData<timestamp_tz_t>(col)[r]));
                         break;
                     default:
                         row.push_back("Type " + col.GetType().ToString() + " not implemented");
