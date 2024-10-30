@@ -36,6 +36,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "stephaniewang526",
+      "name": "Stephanie Wang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7338432?v=4",
+      "profile": "http://stephaniewang526.github.io/",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
