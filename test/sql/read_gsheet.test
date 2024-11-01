@@ -65,6 +65,14 @@ NULL
 NULL
 99.0
 
+# Issue 34: stod() fails on empty strings
+query III
+FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=732080485#gid=732080485');
+----
+1.0	value1	blabla1
+2.0	value2	blabla2
+3.0	value3	blabla3
+NULL	value4	blabla4
 
 # Drop the secret
 statement ok

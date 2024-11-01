@@ -53,10 +53,18 @@ void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataC
                 const string& value = row[col];
                 switch (column_types[col].id()) {
                     case LogicalTypeId::BOOLEAN:
-                        output.SetValue(col, row_count, Value::BOOLEAN(value == "true"));
+                        if (value.empty()) {
+                            output.SetValue(col, row_count, Value(LogicalType::BOOLEAN));
+                        } else {
+                            output.SetValue(col, row_count, Value(value).DefaultCastAs(LogicalType::BOOLEAN));
+                        }
                         break;
                     case LogicalTypeId::DOUBLE:
-                        output.SetValue(col, row_count, Value::DOUBLE(std::stod(value)));
+                        if (value.empty()) {
+                            output.SetValue(col, row_count, Value(LogicalType::DOUBLE));
+                        } else {
+                            output.SetValue(col, row_count, Value(value).DefaultCastAs(LogicalType::DOUBLE));
+                        }
                         break;
                     default:
                         output.SetValue(col, row_count, Value(value));
