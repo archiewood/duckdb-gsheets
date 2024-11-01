@@ -3,7 +3,7 @@ title: DuckDB for Google Sheets
 hide_title: true
 ---
 
-<h1 class="markdown flex items-center gap-2"><img src="duckdb-gsheets.png" style="height: 1em;"/> DuckDB for Google Sheets</h1>
+<h1 class="markdown flex items-center gap-2"><img src="icon-512.png" style="height: 1em;"/> DuckDB for Google Sheets</h1>
 
 <Alert status="warning">
 

@@ -5,6 +5,6 @@
 	export let data;
 </script>
 
-<EvidenceDefaultLayout {data} hideBreadcrumbs logo="/duckdb-gsheets.png" githubRepo="https://github.com/evidence-dev/duckdb_gsheets">
+<EvidenceDefaultLayout {data} hideBreadcrumbs logo="/icon-512.png" githubRepo="https://github.com/evidence-dev/duckdb_gsheets">
 	<slot slot="content" />
 </EvidenceDefaultLayout>
