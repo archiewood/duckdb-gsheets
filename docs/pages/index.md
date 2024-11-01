@@ -1,9 +1,9 @@
 ---
-title: DuckDB GSheets
+title: DuckDB for Google Sheets
 hide_title: true
 ---
 
-<h1 class="markdown flex items-center gap-2"><img src="duckdb-gsheets.png" style="height: 1em;"/> DuckDB GSheets</h1>
+<h1 class="markdown flex items-center gap-2"><img src="duckdb-gsheets.png" style="height: 1em;"/> DuckDB for Google Sheets</h1>
 
 <Alert status="warning">
 
@@ -14,6 +14,8 @@ Here be many dragons
 
 
 A DuckDB extension that allows you to read and write Google Sheets using SQL.
+
+Note: This project is not affliated with Google or DuckDB.
 
 ## Install
 
