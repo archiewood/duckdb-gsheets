@@ -42,7 +42,7 @@ CREATE SECRET (TYPE gsheet, TOKEN '<your_token>');
 -- (boring, see "Getting a Google API Access Private Key" below)
 -- Note that private key is in the format:
 -- -----BEGIN PRIVATE KEY-----\n ... -----END PRIVATE KEY-----\n
-CREATE SECRET (TYPE gsheet, EMAIL '<service_account_email>', SECRET '<your_private_key>');
+CREATE SECRET (TYPE gsheet, PROVIDER private_key, EMAIL '<service_account_email>', SECRET '<your_private_key>');
 ```
 
 ### Read
