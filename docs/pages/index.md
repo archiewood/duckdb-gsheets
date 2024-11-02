@@ -1,21 +1,20 @@
 ---
-title: DuckDB for Google Sheets
+title: DuckDB GSheets
 hide_title: true
 ---
 
-<h1 class="markdown flex items-center gap-2"><img src="icon-512.png" style="height: 1em;"/> DuckDB for Google Sheets</h1>
+<h1 class="markdown flex items-center gap-2"><img src="icon-512.png" style="height: 1em;"/> DuckDB GSheets</h1>
 
 <Alert status="warning">
 
-**🚧 WARNING - Experimental 🚧**
-
-Here be dragons 
+**🚧 WARNING - Experimental 🚧** Here be dragons
+ 
 </Alert>
 
 
 A DuckDB extension for reading and writing Google Sheets with SQL.
 
-_Note: This project is not affliated with Google or DuckDB, it is a community extensionmaintained by [Evidence](https://evidence.dev)._
+_Note: This project is not affliated with Google or DuckDB, it is a community extension maintained by [Evidence](https://evidence.dev)._
 
 ## Install
 
@@ -79,7 +78,7 @@ COPY <table_name> TO 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-
 
 ## Getting a Google API Access Token
 
-To connect DuckDB to Google Sheets, you’ll need to create a Service Account through the Google API, and use it to generate an access token:
+To connect DuckDB to Google Sheets via an access token, you’ll need to create a Service Account through the Google API, and use it to generate an access token:
 
 1. Navigate to the [Google API Console](https://console.developers.google.com/apis/library).
 2. Create a new project.
