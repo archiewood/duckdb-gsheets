@@ -8,7 +8,11 @@ require gsheets
 
 # Create a secret NB must substitute a token, do not commit!
 statement ok
-create secret test_secret (type gsheet, token '${TOKEN}');
+create secret test_secret (
+    type gsheet, 
+    provider access_token, 
+    token '${TOKEN}'
+);
 
 # Create a table to copy to Google Sheet
 statement ok
