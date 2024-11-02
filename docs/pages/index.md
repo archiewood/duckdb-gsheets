@@ -7,15 +7,15 @@ hide_title: true
 
 <Alert status="warning">
 
-**🚧 WARNING - Work in Progress 🚧**
+**🚧 WARNING - Experimental 🚧**
 
-Here be many dragons 
+Here be dragons 
 </Alert>
 
 
-A DuckDB extension that allows you to read and write Google Sheets using SQL.
+A DuckDB extension for reading and writing Google Sheets with SQL.
 
-Note: This project is not affliated with Google or DuckDB.
+_Note: This project is not affliated with Google or DuckDB, it is a community extensionmaintained by [Evidence](https://evidence.dev)._
 
 ## Install
 
@@ -31,11 +31,15 @@ The latest version of DuckDB (currently 1.1.2) is required.
 ### Authenticate
 
 ```sql
--- Authenticate with Google Account in the browser (easiest)
-CREATE SECRET (TYPE gsheet, PROVIDER oauth);
+-- Authenticate with Google Account in the browser (default)
+CREATE SECRET (TYPE gsheet);
 
 -- OR create a secret with your Google API access token (boring, see below guide)
-CREATE SECRET (TYPE gsheet, TOKEN '<your_token>');
+CREATE SECRET (
+    TYPE gsheet, 
+    PROVIDER access_token, 
+    TOKEN '<your_token>'
+);
 ```
 
 ### Read
@@ -103,7 +107,6 @@ This token will periodically expire - you can re-run the above command again to 
 ## Limitations / Known Issues
 
 - Google Sheets has a limit of 1,000,000 cells per spreadsheet.
-- The OAuth app has not yet been approved by Google, so will throw a warning - you must select "Contine (Unsafe)" to use it.
 - Reading sheets where data does not start in A1 is not yet supported.
 - Writing data to a sheet starting from a cell other than A1 is not yet supported.
 - Sheets must already exist to COPY TO them.

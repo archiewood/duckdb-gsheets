@@ -86,7 +86,7 @@ namespace duckdb
         SecretType secret_type;
         secret_type.name = type;
         secret_type.deserializer = KeyValueSecret::Deserialize<KeyValueSecret>;
-        secret_type.default_provider = "access_token";
+        secret_type.default_provider = "oauth";
         ExtensionUtil::RegisterSecretType(instance, secret_type);
 
         // Register the access_token secret provider
