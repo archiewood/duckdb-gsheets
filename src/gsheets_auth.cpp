@@ -6,6 +6,9 @@
 #include "duckdb/main/extension_util.hpp"
 #include <fstream>
 #include <cstdlib>
+#include <json.hpp>
+
+using json = nlohmann::json;
 
 namespace duckdb
 {
@@ -78,6 +81,23 @@ namespace duckdb
         return std::move(result);
     }
 
+    // TODO: Maybe this should be a KeyValueSecret
+    static unique_ptr<BaseSecret> CreateGsheetSecretFromPrivateKey(ClientContext &context, CreateSecretInput &input) {
+        auto scope = input.scope;
+
+        auto result = make_uniq<KeyValueSecret>(scope, input.type, input.provider, input.name);
+
+        // Manage specific secret option
+        CopySecret("secret", input, *result);
+        CopySecret("email", input, *result);
+
+        // Redact sensible keys
+        RedactCommonKeys(*result);
+        result->redact_keys.insert("secret");
+
+        return std::move(result);
+    }
+
     void CreateGsheetSecretFunctions::Register(DatabaseInstance &instance)
     {
         string type = "gsheet";
@@ -100,6 +120,13 @@ namespace duckdb
         oauth_function.named_parameters["use_oauth"] = LogicalType::BOOLEAN;
         RegisterCommonSecretParameters(oauth_function);
         ExtensionUtil::RegisterFunction(instance, oauth_function);
+
+        // Register the private key secret provider
+        CreateSecretFunction private_key_function = {type, "private_key", CreateGsheetSecretFromPrivateKey};
+        private_key_function.named_parameters["email"] = LogicalType::VARCHAR;
+        private_key_function.named_parameters["secret"] = LogicalType::VARCHAR;
+        RegisterCommonSecretParameters(private_key_function);
+        ExtensionUtil::RegisterFunction(instance, private_key_function);
     }
 
     std::string InitiateOAuthFlow()

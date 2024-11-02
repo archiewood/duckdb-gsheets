@@ -5,6 +5,9 @@
 #include "duckdb/main/secret/secret_manager.hpp"
 #include "gsheets_requests.hpp"
 #include <json.hpp>
+#include <regex>
+#include "gsheets_get_token.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -113,13 +116,39 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
         throw InvalidInputException("Invalid secret format for 'gsheet' secret");
     }
 
-    Value token_value;
-    if (!kv_secret->TryGetValue("token", token_value)) {
-        throw InvalidInputException("'token' not found in 'gsheet' secret");
+    std::string token;
+
+    if (secret.GetProvider() == "private_key") {
+        // If using a private key, retrieve the private key from the secret, but convert it 
+        // into a token before use. This is an extra request per Google Sheet read or copy.
+        Value email_value;
+        if (!kv_secret->TryGetValue("email", email_value)) {
+            throw InvalidInputException("'email' not found in 'gsheet' secret");
+        }
+        std::string email_string = email_value.ToString();
+
+        Value secret_value;
+        if (!kv_secret->TryGetValue("secret", secret_value)) {
+            throw InvalidInputException("'secret' not found in 'gsheet' secret");
+        }
+        std::string secret_string = std::regex_replace(secret_value.ToString(), std::regex(R"(\\n)"), "\n");
+        
+        json token_json = parseJson(get_token(email_string, secret_string));
+        
+        json failure_string = "failure";
+        if (token_json["status"] == failure_string) {
+            throw InvalidInputException("Conversion from private key to token failed. Check key format (-----BEGIN PRIVATE KEY-----\\n ... -----END PRIVATE KEY-----\\n) and expiration date.");
+        }
+
+        token = token_json["access_token"].get<std::string>();
+    } else {
+        Value token_value;
+        if (!kv_secret->TryGetValue("token", token_value)) {
+            throw InvalidInputException("'token' not found in 'gsheet' secret");
+        }
+
+        token = token_value.ToString();
     }
-
-    std::string token = token_value.ToString();
-
     // Get sheet name from URL
     std::string sheet_id = extract_sheet_id(sheet_input);
     sheet_name = get_sheet_name_from_id(spreadsheet_id, sheet_id, token);
