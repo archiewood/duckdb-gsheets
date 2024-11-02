@@ -34,8 +34,15 @@ The latest version of DuckDB (currently 1.1.2) is required.
 -- Authenticate with Google Account in the browser (easiest)
 CREATE SECRET (TYPE gsheet, PROVIDER oauth);
 
--- OR create a secret with your Google API access token (boring, see below guide)
+-- OR create a secret with your Google API access token 
+-- (boring, see "Getting a Google API Access Token" below)
 CREATE SECRET (TYPE gsheet, TOKEN '<your_token>');
+
+-- OR create a non-expiring secret with your Google API private key 
+-- (boring, see "Getting a Google API Access Private Key" below)
+-- Note that private key is in the format:
+-- -----BEGIN PRIVATE KEY-----\n ... -----END PRIVATE KEY-----\n
+CREATE SECRET (TYPE gsheet, EMAIL '<service_account_email>', SECRET '<your_private_key>');
 ```
 
 ### Read
@@ -99,6 +106,19 @@ To connect DuckDB to Google Sheets, you’ll need to create a Service Account th
 14. Run DuckDB and load the extension
 
 This token will periodically expire - you can re-run the above command again to generate a new one.
+
+## Getting a Google API Access Private Key
+
+Follow steps 1-9 above to get a JSON file with your private key inside.
+
+Use the value in the `"private_key"` field as the `SECRET` parameter.
+It will be in the format `-----BEGIN PRIVATE KEY-----\n ... -----END PRIVATE KEY-----\n`
+
+Folow steps 13 and 14.
+
+This private key by default will not expire. Use caution with it. 
+
+This will also require an additional API request for every Google Sheets call, so it will take a small bit of extra time and you may want to use a token directly if you hit a rate limit of any kind.
 
 ## Limitations / Known Issues
 
