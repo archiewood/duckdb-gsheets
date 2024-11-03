@@ -1,0 +1,52 @@
+# name: test/sql/types.test
+# description: test types
+# group: [gsheets]
+
+require-env TOKEN
+
+# Require statement will ensure this test is run with this extension loaded
+require gsheets
+
+# Create a secret NB must substitute a token, do not commit!
+statement ok
+create secret test_secret (
+    type gsheet,
+    provider access_token,
+    token '${TOKEN}'
+);
+
+# Test the easy types
+# TODO: add the other types
+# bool,tinyint,smallint,int,bigint,hugeint,uhugeint,utinyint,usmallint,uint,ubigint,varint,date,time,timestamp,timestamp_s,timestamp_ms,timestamp_ns,time_tz,timestamp_tz,float,double,dec_4_1,dec_9_4,dec_18_6,dec38_10,uuid,interval,varchar,blob,bit,small_enum,medium_enum,large_enum,int_array,double_array,date_array,timestamp_array,timestamptz_array,varchar_array,nested_int_array,struct,struct_of_arrays,array_of_structs,map,union,fixed_int_array,fixed_varchar_array,fixed_nested_int_array,fixed_nested_varchar_array,fixed_struct_array,struct_of_fixed_array,fixed_array_of_int_list,list_of_fixed_int_array
+statement ok
+copy (select 
+    bool,
+    tinyint,
+    smallint,
+    int,
+    bigint,
+    hugeint,
+    uhugeint,
+    utinyint,
+    usmallint,
+    uint,
+    ubigint,
+    varint,
+    date,
+    time,
+    timestamp,
+    timestamp_s,
+    timestamp_ms,
+    timestamp_ns,
+    time_tz,
+    timestamp_tz,
+    float,
+    double
+from test_all_types()) to 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1295634987#gid=1295634987' (format gsheet);
+
+# Read the types back
+query IIIIIIIIIIIIIIIIIIIIII
+from 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1295634987#gid=1295634987';
+----
+FALSE	-128.0	-32768.0	-2147483648.0	-9.22337e+18	-1.70141e+38	0.0	0.0	0.0	0.0	0.0	-1.79769e+308	5877642-06-25 (BC)	0:00:00	290309-12-22 (BC) 00:00:00	290309-12-22 (BC) 00:00:00	290309-12-22 (BC) 00:00:00	1677-09-22 0:00:00	00:00:00+15:59:59	290309-12-22 (BC) 00:00:00+00	-3.4e+38	-1.80E+308
+TRUE	127.0	32767.0	2147483647.0	9.223372036854776e+18	1.7014118346046923e+38	3.402823669209385e+38	255.0	65535.0	4294967295.0	1.8446744073709552e+19	1.7976931348623157e+308	5881580-07-10	24:00:00	294247-01-10 04:00:54.775806	294247-01-10 04:00:54	294247-01-10 04:00:54.775	2262-04-11 23:47:17	24:00:00-15:59:59	294247-01-10 04:00:54.775806+00	3.4e+38	1.80E+308
