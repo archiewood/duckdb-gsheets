@@ -23,7 +23,7 @@ INSTALL gsheets FROM community;
 LOAD gsheets;
 ```
 
-The latest version of DuckDB (currently 1.1.2) is required.
+The latest version of [DuckDB](https://duckdb.org/docs/installation) (currently 1.1.2) is required.
 
 ## Usage 
 
@@ -109,3 +109,7 @@ This token will periodically expire - you can re-run the above command again to 
 - Reading sheets where data does not start in A1 is not yet supported.
 - Writing data to a sheet starting from a cell other than A1 is not yet supported.
 - Sheets must already exist to COPY TO them.
+
+## Support 
+
+If you are having problems, find a bug, or have an idea for an improvement, please [file an issue on GitHub](https://github.com/evidence-dev/duckdb_gsheets).
