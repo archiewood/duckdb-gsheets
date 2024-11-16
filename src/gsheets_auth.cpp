@@ -88,12 +88,11 @@ namespace duckdb
         auto result = make_uniq<KeyValueSecret>(scope, input.type, input.provider, input.name);
 
         // Manage specific secret option
-        CopySecret("secret", input, *result);
-        CopySecret("email", input, *result);
+        CopySecret("filename", input, *result);
 
         // Redact sensible keys
         RedactCommonKeys(*result);
-        result->redact_keys.insert("secret");
+        result->redact_keys.insert("filename");
 
         return std::move(result);
     }
@@ -123,8 +122,7 @@ namespace duckdb
 
         // Register the private key secret provider
         CreateSecretFunction private_key_function = {type, "private_key", CreateGsheetSecretFromPrivateKey};
-        private_key_function.named_parameters["email"] = LogicalType::VARCHAR;
-        private_key_function.named_parameters["secret"] = LogicalType::VARCHAR;
+        private_key_function.named_parameters["filename"] = LogicalType::VARCHAR;
         RegisterCommonSecretParameters(private_key_function);
         ExtensionUtil::RegisterFunction(instance, private_key_function);
     }

@@ -137,23 +137,22 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
     if (secret.GetProvider() == "private_key") {
         // If using a private key, retrieve the private key from the secret, but convert it 
         // into a token before use. This is an extra request per Google Sheet read or copy.
-        Value email_value;
-        if (!kv_secret->TryGetValue("email", email_value)) {
-            throw InvalidInputException("'email' not found in 'gsheet' secret");
-        }
-        std::string email_string = email_value.ToString();
-
-        Value secret_value;
-        if (!kv_secret->TryGetValue("secret", secret_value)) {
-            throw InvalidInputException("'secret' not found in 'gsheet' secret");
-        }
-        std::string secret_string = std::regex_replace(secret_value.ToString(), std::regex(R"(\\n)"), "\n");
+        // The secret is the JSON file that is extracted from Google as per the README
         
-        json token_json = parseJson(get_token(email_string, secret_string));
+
+        Value filename_value;
+        if (!kv_secret->TryGetValue("filename", filename_value)) {
+            throw InvalidInputException("'filename' not found in 'gsheet' secret");
+        }
+        std::string filename_string = filename_value.ToString();
+        
+        std::string token_plus_metadata = get_token(filename_string);
+        
+        json token_json = parseJson(token_plus_metadata);
         
         json failure_string = "failure";
         if (token_json["status"] == failure_string) {
-            throw InvalidInputException("Conversion from private key to token failed. Check key format (-----BEGIN PRIVATE KEY-----\\n ... -----END PRIVATE KEY-----\\n) and expiration date.");
+            throw InvalidInputException("Conversion from private key to token failed. Check email, key format in JSON file (-----BEGIN PRIVATE KEY-----\\n ... -----END PRIVATE KEY-----\\n), and expiration date.");
         }
 
         token = token_json["access_token"].get<std::string>();

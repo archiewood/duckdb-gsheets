@@ -61,17 +61,16 @@ namespace duckdb
         output[output_index] = '\0';
     }
 
-    std::string get_token(const std::string& email, const std::string& private_key) {
+    std::string get_token(const std::string& filename) {
         const char *header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
-
-        const int iat = time(NULL);
-        const int exp = iat + 60 * 60 - 1;
-
-        char claim_set[1024];
 
         /* Create jwt claim set */
         json jwt_claim_set;
         std::time_t t = std::time(NULL);
+        std::ifstream ifs(filename);
+        json credentials_file = json::parse(ifs);
+        std::string email = credentials_file["client_email"].get<std::string>();
+
         jwt_claim_set["iss"] = email; /* service account email address */
         jwt_claim_set["scope"] = "https://www.googleapis.com/auth/spreadsheets" /* scope of requested access token */;
         jwt_claim_set["aud"] = "https://accounts.google.com/o/oauth2/token"; /* intended target of the assertion for an access token */
@@ -80,13 +79,11 @@ namespace duckdb
         // set the limit to 10 minutes. (Max that Google allows is 1 hour)
         jwt_claim_set["exp"] = std::to_string(t+600); /* expire time*/
 
-        std::copy(jwt_claim_set.dump().cbegin(), jwt_claim_set.dump().cend(), claim_set);
-
         char header_64[1024];
         base64encode(header_64, header, strlen(header));
 
         char claim_set_64[1024];
-        base64encode(claim_set_64, claim_set, strlen(claim_set));
+        base64encode(claim_set_64, jwt_claim_set.dump().c_str(), strlen(jwt_claim_set.dump().c_str()));
 
         char input[1024];
         int input_length = sprintf(input, "%s.%s", header_64, claim_set_64);
@@ -99,18 +96,17 @@ namespace duckdb
         
         digest_str[SHA256_DIGEST_LENGTH * 2] = '\0';
 
-        // This works, but requires a file. The in-memory version is below.
-        // FILE *key_file = fopen("credentials.key.pem", "r");
-        // RSA *rsa = PEM_read_RSAPrivateKey(key_file, NULL, NULL, NULL);
-
-        BIO *bufio;
-        RSA *rsa;
-
-        bufio = BIO_new_mem_buf(private_key.c_str(), -1); 
-        PEM_read_bio_RSAPrivateKey(bufio, &rsa, 0, NULL);
+        std::string private_key_string = credentials_file["private_key"].get<std::string>();
+        
+        BIO* bio = BIO_new(BIO_s_mem());
+        const void * private_key_pointer = private_key_string.c_str();
+        int private_key_length = std::strlen(private_key_string.c_str());
+        BIO_write(bio, private_key_pointer, private_key_length);
+        EVP_PKEY* evp_key = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
+        RSA* rsa = EVP_PKEY_get1_RSA(evp_key);
 
         if (rsa != NULL) {
-            unsigned char sigret[4096];
+            unsigned char sigret[4096] = {};
             unsigned int siglen;
             if (RSA_sign(NID_sha256, digest, SHA256_DIGEST_LENGTH, sigret, &siglen, rsa)) {
                 if (RSA_verify(NID_sha256, digest, SHA256_DIGEST_LENGTH, sigret, siglen, rsa)) {
@@ -137,6 +133,7 @@ namespace duckdb
             RSA_free(rsa);
         }
         std::string failure_message = "{\"status\":\"failed\"}";
+
         return failure_message;
     }
 }

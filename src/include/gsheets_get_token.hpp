@@ -9,6 +9,6 @@ namespace duckdb {
 
     void base64encode(char *output, const char *input, size_t input_length) ;
 
-    std::string get_token(const std::string& email, const std::string& private_key) ;
+    std::string get_token(const std::string& filename) ;
 
 }
