@@ -1,21 +1,20 @@
 ---
-title: DuckDB for Google Sheets
+title: DuckDB GSheets
 hide_title: true
 ---
 
-<h1 class="markdown flex items-center gap-2"><img src="icon-512.png" style="height: 1em;"/> DuckDB for Google Sheets</h1>
+<h1 class="markdown flex items-center gap-2"><img src="icon-512.png" style="height: 1em;"/> DuckDB GSheets</h1>
 
 <Alert status="warning">
 
-**🚧 WARNING - Work in Progress 🚧**
-
-Here be many dragons 
+**🚧 WARNING - Experimental 🚧** Here be dragons
+ 
 </Alert>
 
 
-A DuckDB extension that allows you to read and write Google Sheets using SQL.
+A DuckDB extension for reading and writing Google Sheets with SQL.
 
-Note: This project is not affliated with Google or DuckDB.
+_Note: This project is not affliated with Google or DuckDB, it is a community extension maintained by [Evidence](https://evidence.dev)._
 
 ## Install
 
@@ -24,25 +23,22 @@ INSTALL gsheets FROM community;
 LOAD gsheets;
 ```
 
-The latest version of DuckDB (currently 1.1.2) is required.
+The latest version of [DuckDB](https://duckdb.org/docs/installation) (currently 1.1.2) is required.
 
 ## Usage 
 
 ### Authenticate
 
 ```sql
--- Authenticate with Google Account in the browser (easiest)
-CREATE SECRET (TYPE gsheet, PROVIDER oauth);
+-- Authenticate with Google Account in the browser (default)
+CREATE SECRET (TYPE gsheet);
 
--- OR create a secret with your Google API access token 
--- (boring, see "Getting a Google API Access Token" below)
-CREATE SECRET (TYPE gsheet, TOKEN '<your_token>');
-
--- OR create a non-expiring secret with your Google API private key 
--- (boring, see "Getting a Google API Access Private Key" below)
--- Note that private key is in the format:
--- -----BEGIN PRIVATE KEY-----\n ... -----END PRIVATE KEY-----\n
-CREATE SECRET (TYPE gsheet, PROVIDER private_key, EMAIL '<service_account_email>', SECRET '<your_private_key>');
+-- OR create a secret with your Google API access token (boring, see below guide)
+CREATE SECRET (
+    TYPE gsheet, 
+    PROVIDER access_token, 
+    TOKEN '<your_token>'
+);
 ```
 
 ### Read
@@ -82,7 +78,7 @@ COPY <table_name> TO 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-
 
 ## Getting a Google API Access Token
 
-To connect DuckDB to Google Sheets, you’ll need to create a Service Account through the Google API, and use it to generate an access token:
+To connect DuckDB to Google Sheets via an access token, you’ll need to create a Service Account through the Google API, and use it to generate an access token:
 
 1. Navigate to the [Google API Console](https://console.developers.google.com/apis/library).
 2. Create a new project.
@@ -123,7 +119,10 @@ This will also require an additional API request for every Google Sheets call, s
 ## Limitations / Known Issues
 
 - Google Sheets has a limit of 1,000,000 cells per spreadsheet.
-- The OAuth app has not yet been approved by Google, so will throw a warning - you must select "Contine (Unsafe)" to use it.
 - Reading sheets where data does not start in A1 is not yet supported.
 - Writing data to a sheet starting from a cell other than A1 is not yet supported.
 - Sheets must already exist to COPY TO them.
+
+## Support 
+
+If you are having problems, find a bug, or have an idea for an improvement, please [file an issue on GitHub](https://github.com/evidence-dev/duckdb_gsheets).

@@ -18,6 +18,22 @@ ReadSheetBindData::ReadSheetBindData(string spreadsheet_id, string token, bool h
     response = call_sheets_api(spreadsheet_id, token, sheet_name, HttpMethod::GET);
 }
 
+bool IsValidNumber(const string& value) {
+    // Skip empty strings
+    if (value.empty()) {
+        return false;
+    }
+    
+    try {
+        // Try to parse as double
+        size_t processed;
+        std::stod(value, &processed);
+        // Ensure the entire string was processed
+        return processed == value.length();
+    } catch (...) {
+        return false;
+    }
+}
 
 void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
     auto &bind_data = const_cast<ReadSheetBindData&>(data_p.bind_data->Cast<ReadSheetBindData>());
@@ -43,7 +59,7 @@ void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataC
             const string& value = first_data_row[col];
             if (value == "true" || value == "false") {
                 column_types[col] = LogicalType::BOOLEAN;
-            } else if (value.find_first_not_of("0123456789.+-eE") == string::npos) {
+            } else if (IsValidNumber(value)) {
                 column_types[col] = LogicalType::DOUBLE;
             }
         }
@@ -184,7 +200,7 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
                 const string& value = first_data_row[i];
                 if (value == "true" || value == "false") {
                     return_types.push_back(LogicalType::BOOLEAN);
-                } else if (value.find_first_not_of("0123456789.+-eE") == string::npos) {
+                } else if (IsValidNumber(value)) {
                     return_types.push_back(LogicalType::DOUBLE);
                 } else {
                     return_types.push_back(LogicalType::VARCHAR);
