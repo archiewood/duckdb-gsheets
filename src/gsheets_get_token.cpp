@@ -7,6 +7,9 @@
 #include <openssl/err.h>
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <httplib.hpp>
 
 #include <json.hpp>
