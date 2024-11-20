@@ -2,6 +2,7 @@
 #include <stdio.h>  
 #include <string.h>
 #include <stdlib.h>
+#include "gsheets_requests.hpp"
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
