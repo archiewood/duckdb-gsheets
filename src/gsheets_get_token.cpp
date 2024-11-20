@@ -10,7 +10,6 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <httplib.hpp>
 
 #include <json.hpp>
 using json = nlohmann::json;
@@ -119,12 +118,11 @@ namespace duckdb
                     char jwt[1024];
                     sprintf(jwt, "%s.%s", input, signature_64);
 
-                    duckdb_httplib_openssl::Client cli("https://oauth2.googleapis.com");
-                    duckdb_httplib_openssl::Params params;
-                    params.emplace("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
-                    params.emplace("assertion", jwt);
-                    auto result = cli.Post("/token", params);
-                    return (result -> body);
+                    std::string body = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + std::string(jwt);
+                    return perform_https_request("oauth2.googleapis.com", "/token", "", 
+                                               HttpMethod::POST, 
+                                               body,
+                                               "application/x-www-form-urlencoded");
                 } else {
                     printf("Could not verify RSA signature.");
                 }
