@@ -94,7 +94,33 @@ namespace duckdb
 
         // If writing, clear out the entire sheet first.
         // Do this here in the initialization so that it only happens once
-        std::string response = delete_sheet_data(spreadsheet_id, token, encoded_sheet_name);
+        std::string delete_response = delete_sheet_data(spreadsheet_id, token, encoded_sheet_name);
+
+        // Write out the headers to the file here in the Initialize so they are only written once
+        // Create object ready to write to Google Sheet
+        json sheet_data;
+
+        sheet_data["range"] = sheet_name;
+        sheet_data["majorDimension"] = "ROWS";
+        
+        vector<string> headers = bind_data.Cast<GSheetWriteBindData>().options.name_list;        
+
+        vector<vector<string>> values;
+        values.push_back(headers);
+        sheet_data["values"] = values;
+
+        // Convert the JSON object to a string
+        std::string request_body = sheet_data.dump();
+
+        // Make the API call to write data to the Google Sheet
+        // Today, this is only append.
+        std::string response = call_sheets_api(spreadsheet_id, token, encoded_sheet_name, HttpMethod::POST, request_body);
+
+        // Check for errors in the response
+        json response_json = parseJson(response);
+        if (response_json.contains("error")) {
+            throw duckdb::IOException("Error writing to Google Sheet: " + response_json["error"]["message"].get<std::string>());
+        }
 
         return make_uniq<GSheetCopyGlobalState>(context, spreadsheet_id, token, encoded_sheet_name);
     }
@@ -119,12 +145,9 @@ namespace duckdb
         json sheet_data;
 
         sheet_data["range"] = sheet_name;
-        sheet_data["majorDimension"] = "ROWS";
-        
-        vector<string> headers = bind_data_p.Cast<GSheetWriteBindData>().options.name_list;        
+        sheet_data["majorDimension"] = "ROWS";    
 
         vector<vector<string>> values;
-        values.push_back(headers);
 
         for (idx_t r = 0; r < input.size(); r++)
         {
