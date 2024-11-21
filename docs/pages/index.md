@@ -23,7 +23,7 @@ INSTALL gsheets FROM community;
 LOAD gsheets;
 ```
 
-The latest version of [DuckDB](https://duckdb.org/docs/installation) (currently 1.1.2) is required.
+The latest version of [DuckDB](https://duckdb.org/docs/installation) (currently 1.1.3) is supported.
 
 ## Usage 
 
