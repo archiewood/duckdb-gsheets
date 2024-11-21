@@ -21,6 +21,7 @@ set(EXTENSION_SOURCES
     src/gsheets_requests.cpp
     src/gsheets_read.cpp
     src/gsheets_utils.cpp
+    src/gsheets_get_token.cpp
 )
 
 build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
