@@ -7,6 +7,9 @@
 #include "duckdb/common/file_system.hpp"
 #include "duckdb/main/secret/secret_manager.hpp"
 #include <json.hpp>
+#include <regex>
+#include "gsheets_get_token.hpp"
+#include <iostream>
 
 using json = nlohmann::json;
 
@@ -49,12 +52,38 @@ namespace duckdb
             throw InvalidInputException("Invalid secret format for 'gsheet' secret");
         }
 
-        Value token_value;
-        if (!kv_secret->TryGetValue("token", token_value)) {
-            throw InvalidInputException("'token' not found in 'gsheet' secret");
-        }
+        std::string token;
 
-        std::string token = token_value.ToString();
+        if (secret.GetProvider() == "private_key") {
+            // If using a private key, retrieve the private key from the secret, but convert it 
+            // into a token before use. This is an extra request per Google Sheet read or copy.
+            // The secret is the JSON file that is extracted from Google as per the README
+            
+
+            Value filename_value;
+            if (!kv_secret->TryGetValue("filename", filename_value)) {
+                throw InvalidInputException("'filename' not found in 'gsheet' secret");
+            }
+            std::string filename_string = filename_value.ToString();
+            
+            std::string token_plus_metadata = get_token(filename_string);
+            
+            json token_json = parseJson(token_plus_metadata);
+            
+            json failure_string = "failure";
+            if (token_json["status"] == failure_string) {
+                throw InvalidInputException("Conversion from private key to token failed. Check email, key format in JSON file (-----BEGIN PRIVATE KEY-----\\n ... -----END PRIVATE KEY-----\\n), and expiration date.");
+            }
+
+            token = token_json["access_token"].get<std::string>();
+        } else {
+            Value token_value;
+            if (!kv_secret->TryGetValue("token", token_value)) {
+                throw InvalidInputException("'token' not found in 'gsheet' secret");
+            }
+
+            token = token_value.ToString();
+        }
         std::string spreadsheet_id = extract_spreadsheet_id(file_path);
         std::string sheet_id = extract_sheet_id(file_path);
         std::string sheet_name = "Sheet1";
