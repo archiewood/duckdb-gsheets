@@ -15,6 +15,8 @@ struct ReadSheetBindData : public TableFunctionData {
     string response;
     bool header;
     string sheet_name;
+    vector<LogicalType> return_types;
+    vector<string> names;
 
     ReadSheetBindData(string spreadsheet_id, string token, bool header, string sheet_name);
 };
