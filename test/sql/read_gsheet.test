@@ -78,6 +78,28 @@ FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8
 3.0	value3	blabla3
 NULL	value4	blabla4
 
+# Issue 47: Blanks in the first row should not prevent all columns from returning
+query IIII
+FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1746330494#gid=1746330494');
+----
+woot	blah	NULL	NULL
+more wooting	more blah	NULL	should get this!
+
+# Issue 47: Read despite missing cells (and test booleans and doubles)
+query IIIIIII
+FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1961167280#gid=1961167280');
+----
+woot	blah	NULL	NULL	true	123.0	should get this!
+more wooting	more blah	should handle blank to the right	NULL	NULL	NULL	NULL
+more wooting	more blah	NULL	NULL	false	456.789	should get this!
+
+# Issue 47: Read despite missing column headers
+query IIII
+FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1108445818#gid=1108445818');
+----
+woot	blah	NULL	should get this!
+more wooting	more blah	NULL	should get this!
+
 # Drop the secret
 statement ok
 drop secret test_secret;
