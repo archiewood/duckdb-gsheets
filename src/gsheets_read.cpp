@@ -48,26 +48,12 @@ void ReadSheetFunction(ClientContext &context, TableFunctionInput &data_p, DataC
     // Adjust starting index based on whether we're using the header
     idx_t start_index = bind_data.header ? bind_data.row_index + 1 : bind_data.row_index;
 
-    // Determine column types
-    vector<LogicalType> column_types(column_count, LogicalType::VARCHAR);
-    if (start_index < sheet_data.values.size()) {
-        const auto& first_data_row = sheet_data.values[start_index];
-        for (idx_t col = 0; col < column_count && col < first_data_row.size(); col++) {
-            const string& value = first_data_row[col];
-            if (value == "TRUE" || value == "FALSE") {
-                column_types[col] = LogicalType::BOOLEAN;
-            } else if (IsValidNumber(value)) {
-                column_types[col] = LogicalType::DOUBLE;
-            }
-        }
-    }
-
     for (idx_t i = start_index; i < sheet_data.values.size() && row_count < STANDARD_VECTOR_SIZE; i++) {
         const auto& row = sheet_data.values[i];
         for (idx_t col = 0; col < column_count; col++) {
             if (col < row.size()) {
                 const string& value = row[col];
-                switch (column_types[col].id()) {
+                switch (bind_data.return_types[col].id()) {
                     case LogicalTypeId::BOOLEAN:
                         if (value.empty()) {
                             output.SetValue(col, row_count, Value(LogicalType::BOOLEAN));
@@ -208,6 +194,9 @@ unique_ptr<FunctionData> ReadSheetBind(ClientContext &context, TableFunctionBind
             return_types.push_back(LogicalType::VARCHAR);
         }
     }
+
+    bind_data->names = names;
+    bind_data->return_types = return_types;
 
     return bind_data;
 }
